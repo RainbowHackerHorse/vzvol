@@ -8,6 +8,7 @@ ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
 ZUSER=$(whoami)
 SIZE=10G
 VOLNAME=DIE
+VOLMK="sudo zfs create -V"
 
 if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
@@ -61,6 +62,10 @@ getargz() {
 					exit 1
 				fi
 				;;
+			--sparse)
+				VOLMK="sudo zfs create -s -V"
+				shift
+			;;
 
 			*)
 				break
@@ -103,6 +108,11 @@ show_help() {
 	first pool is "bootpool" (as with an encrypted system).
 	If your first pool is "bootpool", this script will default to the second
 	listed pool, usually "zroot" in a default install.
+
+	--sparse
+	The sparse flag allows you to create a sparse zvol instead of a pre-allocated one.
+	Be careful using this option! Disk space will not be pre-allocated prior to creating
+	the zvol which can cause you to run out of room in your VM!
 	
 EOT
 }
@@ -116,7 +126,7 @@ checkzvol() {
 
 create_zvol() {
 	if [ ! -e /dev/zvol/"${ZROOT}"/"${VOLNAME}" ]; then
-		sudo zfs create -V "${SIZE}" "${ZROOT}"/"${VOLNAME}"
+		"${VOLMK}" "${SIZE}" "${ZROOT}"/"${VOLNAME}"
 	fi
 	sudo chown "${ZUSER}" /dev/zvol/"${ZROOT}"/"${VOLNAME}"
 	sudo echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | sudo tee -a /etc/devfs.conf
