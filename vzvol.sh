@@ -66,7 +66,7 @@ getargz() {
 			-t|--type)
 				if [ "$2" ]; then
 					VOLTYPE="${2}"
-					if [ "${VOLTYPE}" != "iocage" -a "${VOLTYPE}" != "raw" -a "${VOLTYPE}" != "virtualbox" ]; then
+					if [ "${VOLTYPE}" != "raw" -a "${VOLTYPE}" != "virtualbox" ]; then
 						echo "Error. Invalid type ${VOLTYPE} selected!"
 						exit 1
 					fi
@@ -186,9 +186,7 @@ create_vmdk() {
 }
 
 zvol_type_select() {
-	if [ "${VOLTYPE}" = iocage ]; then
-		zvol_type_iocage
-	elif [ "${VOLTYPE}" = raw ]; then
+	if [ "${VOLTYPE}" = raw ]; then
 		zvol_type_raw
 	elif [ "${VOLTYPE}" = virtualbox ]; then
 		zvol_type_virtualbox
@@ -199,10 +197,7 @@ zvol_type_virtualbox() {
 	create_vmdk || exit 1
 	echo "Please use /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk as your VM Disk"
 }
-zvol_type_iocage() {
-	zvJAIL_UUID=$(iocage get jail_zfs_dataset "${JAILNAME}" | awk -F "/" '{print $3}')
 
-}
 
 getargz "$@" || exit 1
 checkzvol || exit 1
