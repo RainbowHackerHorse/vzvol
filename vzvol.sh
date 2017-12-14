@@ -80,16 +80,6 @@ getargz() {
 				VOLMK="sudo zfs create -s -V"
 				shift
 			;;
-			--jailname)
-				if [ "$2" ]; then
-					JAILNAME="${2}"
-					shift
-				else
-					echo "Error. No name provided. Defaulting to $VOLNAME"
-					JAILNAME="${VOLNAME}"
-					shift
-				fi
-			;;
 
 			*)
 				break
@@ -141,10 +131,6 @@ show_help() {
 	-t | --type
 	This option allows you to set the disk type behavior.
 	The following types are accepted:
-	iocage 		- Creates a zvol mounted at /iocage/jails/UUID for the jailname specified using
-				the --jailname flag. If --jailname is not specified, vzvol will attempt to
-				use the name specified with --volume and match it to an iocage jail tag.
-				Please note that this feature does not yet function.
 	virtualbox 	- The default behavior, vzvol will create a shim VMDK to point to the created 
 				zvol.
 	raw			- Create a raw, normal zvol with no shim, in the default location of 
