@@ -9,6 +9,7 @@ ZUSER=$(whoami)
 SIZE=10G
 VOLNAME=DIE
 VOLMK="sudo zfs create -V"
+JAILNAME="${VOLNAME}"
 
 if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
@@ -62,9 +63,32 @@ getargz() {
 					exit 1
 				fi
 				;;
+			-t|--type)
+				if [ "$2" ]; then
+					VOLTYPE="${2}"
+					if [ "${VOLTYPE}" != "iocage" -a "${VOLTYPE}" != "raw" -a "${VOLTYPE}" != "virtualbox" ]; then
+						echo "Error. Invalid type ${VOLTYPE} selected!"
+						exit 1
+					fi
+					shift
+				else
+					echo "Type not specified!"
+					exit 1
+				fi
+				;;
 			--sparse)
 				VOLMK="sudo zfs create -s -V"
 				shift
+			;;
+			--jailname)
+				if [ "$2" ]; then
+					JAILNAME="${2}"
+					shift
+				else
+					echo "Error. No name provided. Defaulting to $VOLNAME"
+					JAILNAME="${VOLNAME}"
+					shift
+				fi
 			;;
 
 			*)
@@ -113,6 +137,19 @@ show_help() {
 	The sparse flag allows you to create a sparse zvol instead of a pre-allocated one.
 	Be careful using this option! Disk space will not be pre-allocated prior to creating
 	the zvol which can cause you to run out of room in your VM!
+
+	-t | --type
+	This option allows you to set the disk type behavior.
+	The following types are accepted:
+	iocage 		- Creates a zvol mounted at /iocage/jails/UUID for the jailname specified using
+				the --jailname flag. If --jailname is not specified, vzvol will attempt to
+				use the name specified with --volume and match it to an iocage jail tag.
+				Please note that this feature does not yet function.
+	virtualbox 	- The default behavior, vzvol will create a shim VMDK to point to the created 
+				zvol.
+	raw			- Create a raw, normal zvol with no shim, in the default location of 
+				/dev/zvol/poolname/volumename
+	
 	
 EOT
 }
@@ -148,8 +185,26 @@ create_vmdk() {
 	fi
 }
 
+zvol_type_select() {
+	if [ "${VOLTYPE}" = iocage ]; then
+		zvol_type_iocage
+	elif [ "${VOLTYPE}" = raw ]; then
+		zvol_type_raw
+	elif [ "${VOLTYPE}" = virtualbox ]; then
+		zvol_type_virtualbox
+	fi
+}
+
+zvol_type_virtualbox() {
+	create_vmdk || exit 1
+	echo "Please use /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk as your VM Disk"
+}
+zvol_type_iocage() {
+	zvJAIL_UUID=$(iocage get jail_zfs_dataset "${JAILNAME}" | awk -F "/" '{print $3}')
+
+}
+
 getargz "$@" || exit 1
 checkzvol || exit 1
 create_vzol || exit 1
-create_vmdk || exit 1
-echo "Please use /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk as your VM Disk"
+zvol_type_select || exit 1
