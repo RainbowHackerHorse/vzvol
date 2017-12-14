@@ -9,7 +9,6 @@ ZUSER=$(whoami)
 SIZE=10G
 VOLNAME=DIE
 VOLMK="sudo zfs create -V"
-JAILNAME="${VOLNAME}"
 
 if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
@@ -23,7 +22,7 @@ getargz() {
 			-h|--help)
 				show_help
 				exit
-				;;
+			;;
 			-s|--size)
 				if [ "$2" ]; then
 					SIZE="${2}"
@@ -33,7 +32,7 @@ getargz() {
 					echo "Please provide a size!"
 					exit 1
 				fi
-				;;
+			;;
 			-u|--user)
 				if [ "$2" ]; then
 					ZUSER="${2}"
@@ -43,7 +42,7 @@ getargz() {
 					echo "Please provide a username!"
 					exit 1
 				fi
-				;;
+			;;
 			-v|--volume)
 				if [ "$2" ]; then
 					VOLNAME="${2}"
@@ -53,7 +52,7 @@ getargz() {
 					echo "Please provide a zvol name!"
 					exit 1
 				fi
-				;;
+			;;
 			-p|--pool)
 				if [ "$2" ]; then
 					ZROOT="${2}"
@@ -62,7 +61,7 @@ getargz() {
 					echo "Please provide a pool name!"
 					exit 1
 				fi
-				;;
+			;;
 			-t|--type)
 				if [ "$2" ]; then
 					VOLTYPE="${2}"
@@ -75,12 +74,21 @@ getargz() {
 					echo "Type not specified!"
 					exit 1
 				fi
-				;;
+			;;
 			--sparse)
 				VOLMK="sudo zfs create -s -V"
 				shift
 			;;
-
+			-t|--type)
+				if [ "$2" ]; then
+					FSTYPE="${2}"
+					if [ "${FSTYPE}" != "zfs" -a "${FSTYPE}" != "ufs" -a "${FSTYPE}" != "fat32" -a "${FSTYPE}" != "ext2" -a "${FSTYPE}" != "ext3" -a "${FSTYPE}" != "ext4" -a "${FSTYPE}" != "xfs" ]; then
+						echo "Error. Invalid filesystem ${FSTYPE} selected!"
+						exit 1
+					fi
+				fi
+				shift
+			;;
 			*)
 				break
 		esac
@@ -135,7 +143,22 @@ show_help() {
 				zvol.
 	raw			- Create a raw, normal zvol with no shim, in the default location of 
 				/dev/zvol/poolname/volumename
-	
+	--file-system
+	Setting this flag allows you to format the zvol with your choice of filesystem.
+	The default for vzvol is to not create a filesystem on the new zvol.
+	The following types are accepted:
+	Filesystems with support in FreeBSD:
+		zfs 		- Creates a zfs filesystem, using the name set in --volume as the pool name.
+		ufs 		- Create a FreeBSD compatible UFS2 filesystem.
+		fat32		- Create an MS-DOS compatible FAT32 filesystem.
+
+	Filesystems that require a port be installed:
+	*REQUIRES* sysutils/e2fsprogs!
+		ext2		- Creates a Linux-compatible ext2 filesystem.
+		ext3		- Creates a Linux-compatible ext3 filesystem. 	
+		ext4		- Creates a Linux-compatible ext4 filesystem. 	
+	*REQUIRES* sysutils/xfsprogs!
+		xfs 		- Create an XFS filesystem. 
 	
 EOT
 }
@@ -145,6 +168,86 @@ checkzvol() {
 		echo "Please provide a zvol name. See --help for more information."
 		exit 1
 	fi 
+}
+zvol_fs_type() {
+	if [ "${FSTYPE}" = "ext2" -a "${FSTYPE}" = "ext3" -a "${FSTYPE}" = "ext4" -a "${FSTYPE}" = "xfs" ]; then
+		echo "Warning. You have selected an FS type supplied by a port. Now checking to see if the port is installed."
+		echo "Please note that unsupported FSes may exhibit unexpected behavior!"
+		if [ "${FSTYPE}" = "ext2" -a "${FSTYPE}" = "ext3" -a "${FSTYPE}" = "ext4" ]; then
+			if pkg info | grep -vq e2fsprogs; then
+				echo "Error! You need to install sysutils/e2fsprogs first!"
+				return 1
+			fi
+		elif [ "${FSTYPE}" = "xfs" ]; then
+			if pkg info | grep -vq xfsprogs; then
+				echo "Error! You need to install sysutils/xfsprogs first!"
+				return 1
+			fi
+		fi
+	fi
+	case "${FSTYPE}" in
+		zfs)
+			zvol_create_fs_zfs
+		;;
+		ufs)
+			zvol_create_fs_ufs
+		;;
+		fat32)
+			zvol_create_fs_fat32
+		;;
+		ext2)
+			zvol_create_fs_ext2
+		;;
+		ext3)
+			zvol_create_fs_ext3
+		;;
+		ext4)
+			zvol_create_fs_ext4
+		;;
+		xfs)
+			zvol_create_fs_xfs
+		;;
+	esac
+}
+
+zvol_create_fs_zfs() {
+
+}
+zvol_create_fs_ufs() {
+
+}
+zvol_create_fs_fat32() {
+
+}
+zvol_create_fs_ext2() {
+
+}
+zvol_create_fs_ext3() {
+
+}
+zvol_create_fs_ext4() {
+
+}
+zvol_create_fs_xfs() {
+
+}
+
+zvol_type_select() {
+	if [ "${VOLTYPE}" = raw ]; then
+		zvol_type_raw
+	elif [ "${VOLTYPE}" = virtualbox ]; then
+		zvol_type_virtualbox
+	fi
+}
+
+zvol_type_virtualbox() {
+	create_vzol || return 1
+	create_vmdk || return 1
+	echo "Please use /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk as your VM Disk"
+}
+zvol_type_raw() {
+	create_vzol || return 1
+	echo "You can find your zvol at: /dev/zvol/${ZROOT}/${VOLNAME}"
 }
 
 create_zvol() {
@@ -171,21 +274,6 @@ create_vmdk() {
 	fi
 }
 
-zvol_type_select() {
-	if [ "${VOLTYPE}" = raw ]; then
-		zvol_type_raw
-	elif [ "${VOLTYPE}" = virtualbox ]; then
-		zvol_type_virtualbox
-	fi
-}
-
-zvol_type_virtualbox() {
-	create_vmdk || exit 1
-	echo "Please use /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk as your VM Disk"
-}
-
-
 getargz "$@" || exit 1
 checkzvol || exit 1
-create_vzol || exit 1
 zvol_type_select || exit 1
