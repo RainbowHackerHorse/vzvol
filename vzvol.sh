@@ -282,10 +282,10 @@ vzvol_list_type() {
 		purevolname=$(echo $vols | awk -F "/" '{print $2}')
 		purevolused=$(zfs get referenced $vols | awk '{print $3}' | grep -v VALUE)
 		purevolsize=$(zfs get used $vols | awk '{print $3}' | grep -v VALUE)
-		if [ $(zfs get custom:FS $vols | grep -q bad) ]; then
-			zvolfstype="none"
-		else
+		if zfs get custom:FS $vols 2>/dev/null | grep -q FS; then
 			zvolfstype=$(zfs get custom:FS $vols | awk '{print $3}' | grep -v FS)
+		else
+			zvolfstype="unknown"
 		fi
 		if [ -f "${HOME}/VBoxdisks/${purevolname}.vmdk" ]; then
 			echo "${vols} VirtualBox ${HOME}/VBoxdisks/${purevolname}.vmdk $purevolused $purevolsize $zvolfstype"
