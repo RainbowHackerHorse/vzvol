@@ -38,6 +38,8 @@ show_help() {
 	-h | --help
 	Shows this help
 
+	zvol Creation Flags:
+
 	-s | --size
 	Allows you to set a size for the zvol.
 	Size should be set using M or G.
@@ -98,6 +100,29 @@ show_help() {
 	-p
 	The -p flag is used with --import to show a progress bar for image data importation
 	to the vzol. -p requires that sysutils/pv be installed.
+
+	zvol Management Flags:
+
+	--format
+	The --format flag allows you to reformat a zvol created by vzvol, using the same 
+	options and arguments as --file-system
+
+	--delete
+	The --delete flag deletes the zvol you specify. If a .VMDK file is associated with
+	the zvol, the .VMDK will also be deleted.
+	You MUST specify the zpool the zvol resides on.
+	You can get this information from running vzvol --list or zfs list -t volume
+	Example: vzvol --delete zroot/smartos11
+
+	--list
+	List all zvols on your system, the type, and any associated .VMDK files.
+	Example output:
+	---------------------------------------------------------------------------
+	* ZVOL                            TYPE        VMDK                        *
+	---------------------------------------------------------------------------
+	* zroot/smartos                   RAW         none                        *
+	* zroot/ubuntu1604                VirtualBox  ubuntu1604.vmdk             *
+	---------------------------------------------------------------------------
 	
 EOT
 }
@@ -173,10 +198,7 @@ getargz() {
 						return 1
 					fi
 					FSTYPE="${2}"
-					if [ "${FSTYPE}" != "zfs" -a "${FSTYPE}" != "ufs" -a "${FSTYPE}" != "fat32" -a "${FSTYPE}" != "ext2" -a "${FSTYPE}" != "ext3" -a "${FSTYPE}" != "ext4" -a "${FSTYPE}" != "xfs" ]; then
-						echo "Error. Invalid filesystem ${FSTYPE} selected!"
-						return 1
-					fi
+					vzvol_fscheck "${FSTYPE}"
 				fi
 				shift
 			;;
@@ -202,11 +224,67 @@ getargz() {
 				VZVOL_PROGRESS_FLAG="YES"
 				shift
 			;;
+			--delete)
+				if [ $(zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${3}") ]; then
+					echo "Error, zvol ${3} does not exist."
+					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
+					return 1
+				else
+					DELETE_ME="${3}"
+					vzvol_delete 
+					exit
+				fi
+			;;
+			--list)
+				vzvol_list
+				exit
+			;;
+			--format)
+				# Needs a way to get volume name
+				# check for OK
+				FSTYPE="${2}"
+				vzvol_fscheck "${FSTYPE}"
+				zvol_fs_type
+			;;
 			*)
 				break
 		esac
 		shift
 	done
+}
+
+vzvol_list() {
+	(printf "ZVOL TYPE VMDK \n" \
+	; vzvol_list_type) | column -t
+}
+vzvol_list_type() {
+	list_my_vols=$(zfs list -t volume | awk '{print $1}' | grep -v NAME)
+	for vols in $list_my_vols; do
+		purevolname=$(echo $vols | awk -F "/" '{print $2}')
+		if [ -f "${HOME}/VBoxdisks/${purevolname}.vmdk" ]; then
+			echo "${vols} VirtualBox ${HOME}/VBoxdisks/${purevolname}.vmdk"
+		else
+			echo "${vols} RAW none"
+		fi
+	done
+}
+
+vzvol_delete() {
+	echo "WARNING!"
+	echo "This will DESTROY ${DELETE_ME}"
+	echo "Unless you have a snapshot of this zvol,"
+	echo "ALL DATA WILL BE DELETED AND UNRECOVERABLE!"
+	read -p "Do you want to continue? [y/N]?" line </dev/tty
+	case "$line" in
+		y)
+			echo "Deleting ${DELETE_ME}"
+			zfs destroy "${DELETE_ME}"
+		;;
+		*)
+			echo "Deletion cancelled!"
+			return 1
+		;;
+	esac
 }
 
 checkzvol() {
@@ -215,6 +293,12 @@ checkzvol() {
 		echo "Please provide a zvol name. See --help for more information."
 		return 1
 	fi 
+}
+vzvol_fscheck() {
+	if [ "${FSTYPE}" != "zfs" -a "${FSTYPE}" != "ufs" -a "${FSTYPE}" != "fat32" -a "${FSTYPE}" != "ext2" -a "${FSTYPE}" != "ext3" -a "${FSTYPE}" != "ext4" -a "${FSTYPE}" != "xfs" ]; then
+		echo "Error. Invalid filesystem ${FSTYPE} selected!"
+		return 1
+	fi
 }
 zvol_fs_type() {
 	errorfunc='zvol_fs_type'
