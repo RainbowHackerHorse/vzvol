@@ -273,17 +273,19 @@ getargz() {
 
 # Display Data
 vzvol_list() {
-	(printf "ZVOL TYPE VMDK \n" \
+	(printf "ZVOL TYPE VMDK USED SIZE \n" \
 	; vzvol_list_type) | column -t
 }
 vzvol_list_type() {
 	list_my_vols=$(zfs list -t volume | awk '{print $1}' | grep -v NAME)
 	for vols in $list_my_vols; do
 		purevolname=$(echo $vols | awk -F "/" '{print $2}')
+		purevolused=$(zfs get referenced $vols | awk '{print $3}' | grep -v VALUE)
+		purevolsize=$(zfs get used $vols | awk '{print $3}' | grep -v VALUE)
 		if [ -f "${HOME}/VBoxdisks/${purevolname}.vmdk" ]; then
-			echo "${vols} VirtualBox ${HOME}/VBoxdisks/${purevolname}.vmdk"
+			echo "${vols} VirtualBox ${HOME}/VBoxdisks/${purevolname}.vmdk $purevolused $purevolsize"
 		else
-			echo "${vols} RAW none"
+			echo "${vols} RAW none $purevolused $purevolsize"
 		fi
 	done
 }

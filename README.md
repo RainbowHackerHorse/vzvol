@@ -2,7 +2,7 @@
 vzvol is a tool to assist in the creation of ZFS zvols as storage for various virtualization providers.
 
 ## What
-Creates a ZFS zvol, and configures permissions Creates and registers a VirtualBox VMDK shim for the zvol if you ask nicely. 
+Creates a ZFS zvol, and configures permissions, and creates and registers a VirtualBox VMDK shim for the zvol if you ask nicely. 
 
 ## Why
 This allows you to use the zvol to back a disk for VirtualBox, bhyve, or other virtualization providers.
@@ -23,6 +23,8 @@ However, to enable the use of certain functions, some additional packages are re
 ## Will this ever be in the FreeBSD Ports Tree?
 I have no idea. Do you find it useful? I'd love to get it in ports, but
 only if people actually find this useful. :)
+I'm currently working on a port, and you can see progress and help me fix mistakes in my Makefile at:
+https://github.com/RainbowHackerHorse/port-vzvol
 
 ## Contributing
 Fork and open a PR with your changes.
@@ -41,6 +43,8 @@ https://github.com/RainbowHackerHorse/vzvol
 
 -h | --help
 Shows this help
+
+zvol Creation Flags:
 
 -s | --size
 Allows you to set a size for the zvol.
@@ -102,3 +106,25 @@ https://github.com/RainbowHackerHorse/FreeBSD-On-Linode
 -p
 The -p flag is used with --import to show a progress bar for image data importation
 to the vzol. -p requires that sysutils/pv be installed.
+
+zvol Management Flags:
+
+--format
+The --format flag allows you to reformat a zvol created by vzvol, using the same 
+options and arguments as --file-system.
+You must specify the fs type, and then the zvol to format.
+Example: vzvol --format xfs zroot/smartos
+
+--delete
+The --delete flag deletes the zvol you specify. If a .VMDK file is associated with
+the zvol, the .VMDK will also be deleted.
+You MUST specify the zpool the zvol resides on.
+You can get this information from running vzvol --list or zfs list -t volume
+Example: vzvol --delete zroot/smartos11
+
+--list
+List all zvols on your system, the type, and any associated .VMDK files.
+Example output:
+ZVOL              TYPE        VMDK                        
+zroot/smartos     RAW         none                        
+zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk  
