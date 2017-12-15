@@ -11,6 +11,7 @@ VOLNAME=DIE
 VOLMK="sudo zfs create -V"
 FSTYPE=DIE
 errorfunc='MAIN'
+IMPORTIMG=DIE
 
 
 if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
@@ -88,6 +89,11 @@ show_help() {
 		ext4		- Creates a Linux-compatible ext4 filesystem. 	
 	*REQUIRES* sysutils/xfsprogs!
 		xfs 		- Create an XFS filesystem. 
+
+	--import 
+	The --import flag allows you to import the contents of a downloaded disk image to
+	your newly created zvol. This is useful when using a pre-installed VM image, such as
+	https://github.com/RainbowHackerHorse/FreeBSD-On-Linode 
 	
 EOT
 }
@@ -107,7 +113,7 @@ getargz() {
 					shift
 				else
 					echo "Please provide a size!"
-					exit 1
+					return 1
 				fi
 			;;
 			-u|--user)
@@ -117,7 +123,7 @@ getargz() {
 					shift
 				else
 					echo "Please provide a username!"
-					exit 1
+					return 1
 				fi
 			;;
 			-v|--volume)
@@ -127,7 +133,7 @@ getargz() {
 					shift
 				else
 					echo "Please provide a zvol name!"
-					exit 1
+					return 1
 				fi
 			;;
 			-p|--pool)
@@ -136,7 +142,7 @@ getargz() {
 					shift
 				else
 					echo "Please provide a pool name!"
-					exit 1
+					return 1
 				fi
 			;;
 			-t|--type)
@@ -144,27 +150,37 @@ getargz() {
 					VOLTYPE="${2}"
 					if [ "${VOLTYPE}" != "raw" -a "${VOLTYPE}" != "virtualbox" ]; then
 						echo "Error. Invalid type ${VOLTYPE} selected!"
-						exit 1
+						return 1
 					fi
 					shift
 				else
 					echo "Type not specified!"
-					exit 1
+					return 1
 				fi
 			;;
 			--sparse)
 				VOLMK="sudo zfs create -s -V"
 				shift
 			;;
-			-t|--type)
+			--file-system)
 				if [ "$2" ]; then
+					if [ ! "${IMPORTIMG}" = "DIE" ]; then
+						echo "--file-system is incompatible with --import."
+						return 1
+					fi
 					FSTYPE="${2}"
 					if [ "${FSTYPE}" != "zfs" -a "${FSTYPE}" != "ufs" -a "${FSTYPE}" != "fat32" -a "${FSTYPE}" != "ext2" -a "${FSTYPE}" != "ext3" -a "${FSTYPE}" != "ext4" -a "${FSTYPE}" != "xfs" ]; then
 						echo "Error. Invalid filesystem ${FSTYPE} selected!"
-						exit 1
+						return 1
 					fi
 				fi
 				shift
+			;;
+			--import)
+				if [ ! "${FSTYPE}" = "DIE" ]; then
+						echo "--import is incompatible with --file-system."
+						return 1
+				fi
 			;;
 			*)
 				break
