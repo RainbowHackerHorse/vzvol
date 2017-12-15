@@ -105,7 +105,9 @@ show_help() {
 
 	--format
 	The --format flag allows you to reformat a zvol created by vzvol, using the same 
-	options and arguments as --file-system
+	options and arguments as --file-system.
+	You must specify the fs type, and then the zvol to format.
+	Example: vzvol --format xfs zroot/smartos
 
 	--delete
 	The --delete flag deletes the zvol you specify. If a .VMDK file is associated with
