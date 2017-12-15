@@ -117,16 +117,20 @@ show_help() {
 	--list
 	List all zvols on your system, the type, and any associated .VMDK files.
 	Example output:
-	---------------------------------------------------------------------------
-	* ZVOL                            TYPE        VMDK                        *
-	---------------------------------------------------------------------------
-	* zroot/smartos                   RAW         none                        *
-	* zroot/ubuntu1604                VirtualBox  ubuntu1604.vmdk             *
-	---------------------------------------------------------------------------
+	ZVOL              TYPE        VMDK                        
+	zroot/smartos     RAW         none                        
+	zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk             
+	
 	
 EOT
 }
 
+# Script Maintainence Functions
+error_code() {
+	echo "Error occurred in function ${errorfunc}"
+	echo "Exiting"
+	exit 1
+}
 getargz() {
 	errorfunc='getargz'
 	while :; do
@@ -199,6 +203,7 @@ getargz() {
 					fi
 					FSTYPE="${2}"
 					vzvol_fscheck "${FSTYPE}"
+					FORMAT_ME="${ZROOT}/${VOLNAME}"
 				fi
 				shift
 			;;
@@ -225,13 +230,14 @@ getargz() {
 				shift
 			;;
 			--delete)
-				if [ $(zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${3}") ]; then
-					echo "Error, zvol ${3} does not exist."
+				if [ $(zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}") ]; then
+					echo "Error, zvol ${2} does not exist."
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
 					return 1
 				else
-					DELETE_ME="${3}"
-					vzvol_delete 
+					DELETE_ME="${2}"
+					DELETE_VMDK="${HOME}/VBoxDisks/${2}.vmdk"
+					vzvol_delete || exit 1
 					exit
 				fi
 			;;
@@ -240,11 +246,21 @@ getargz() {
 				exit
 			;;
 			--format)
-				# Needs a way to get volume name
-				# check for OK
-				FSTYPE="${2}"
-				vzvol_fscheck "${FSTYPE}"
-				zvol_fs_type
+				if [ $(zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}") ]; then
+					echo "Error, zvol ${2} does not exist."
+					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
+					return 1
+				else
+					if [ ! "$3" ]; then
+						echo "Error, please select a zvol to format"
+						return 1
+					else
+						FSTYPE="${2}"
+						FORMAT_ME="${3}"
+						vzvol_fscheck
+						zvol_fs_type
+					fi
+				fi
 			;;
 			*)
 				break
@@ -253,6 +269,7 @@ getargz() {
 	done
 }
 
+# Display Data
 vzvol_list() {
 	(printf "ZVOL TYPE VMDK \n" \
 	; vzvol_list_type) | column -t
@@ -269,7 +286,39 @@ vzvol_list_type() {
 	done
 }
 
+# File Creation and Deletion
+create_vmdk() {
+	errorfunc='create_vmdk'
+	if [ ! -d /home/"${ZUSER}"/VBoxdisks/ ]; then
+		mkdir -p /home/"${ZUSER}"/VBoxdisks/
+	fi
+	if [ ! -e /home/"${ZUSER}"/VBoxdisks/"${VOLNAME}".vmdk ]; then
+		echo "Creating /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk"
+		sleep 3
+		VBoxManage internalcommands createrawvmdk \
+		-filename /home/"${ZUSER}"/VBoxdisks/"${VOLNAME}".vmdk \
+		-rawdisk /dev/zvol/"${ZROOT}"/"${VOLNAME}"
+	else
+		echo "/home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk" already exists.
+		return 1
+	fi
+}
+create_zvol() {
+	errorfunc='create_vzol'
+	if [ ! -e /dev/zvol/"${ZROOT}"/"${VOLNAME}" ]; then
+		"${VOLMK}" "${SIZE}" "${ZROOT}"/"${VOLNAME}"
+	fi
+	sudo chown "${ZUSER}" /dev/zvol/"${ZROOT}"/"${VOLNAME}"
+	sudo echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | sudo tee -a /etc/devfs.conf
+	if [ ! "${FSTYPE}" = DIE ]; then
+		zvol_fs_type || return 1
+	fi
+	if [ ! "${IMPORTIMG}" = DIE ]; then
+		zvol_import_img || return 1
+	fi
+}
 vzvol_delete() {
+	errorfunc='vzvol_delete'
 	echo "WARNING!"
 	echo "This will DESTROY ${DELETE_ME}"
 	echo "Unless you have a snapshot of this zvol,"
@@ -279,6 +328,9 @@ vzvol_delete() {
 		y)
 			echo "Deleting ${DELETE_ME}"
 			zfs destroy "${DELETE_ME}"
+			if [ -f "${DELETE_VMDK}" ]; then
+				rm -f "${DELETE_VMDK}"
+			fi
 		;;
 		*)
 			echo "Deletion cancelled!"
@@ -287,6 +339,30 @@ vzvol_delete() {
 	esac
 }
 
+# Data Management
+zvol_import_img() {
+	errorfunc='zvol_import_img'
+	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
+		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} | pv -petrb | of=/dev/zvol/${ZROOT}/${VOLNAME}"
+	else
+		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
+	fi
+	echo "Now importing ${IMPORTIMG} to /dev/zvol/${ZROOT}/${VOLNAME}"
+	echo "This will DESTROY all data on /dev/zvol/${ZROOT}/${VOLNAME}"
+	read -p "Do you want to continue? [y/N]?" line </dev/tty
+	case "$line" in
+		y)
+			echo "Beginning import..."
+			"${VZVOL_IMPORT_CMD}"
+		;;
+		*)
+			echo "Import cancelled!"
+			return 1
+		;;
+	esac
+}
+
+# Checks
 checkzvol() {
 	errorfunc='checkzvol'
 	if [ "${VOLNAME}" = 'DIE' ]; then
@@ -294,6 +370,7 @@ checkzvol() {
 		return 1
 	fi 
 }
+
 vzvol_fscheck() {
 	if [ "${FSTYPE}" != "zfs" -a "${FSTYPE}" != "ufs" -a "${FSTYPE}" != "fat32" -a "${FSTYPE}" != "ext2" -a "${FSTYPE}" != "ext3" -a "${FSTYPE}" != "ext4" -a "${FSTYPE}" != "xfs" ]; then
 		echo "Error. Invalid filesystem ${FSTYPE} selected!"
@@ -317,6 +394,18 @@ zvol_fs_type() {
 			fi
 		fi
 	fi
+	echo "Now formatting /dev/zvol/${FORMAT_ME} as ${FSTYPE}"
+	echo "This will DESTROY all data on /dev/zvol/${FORMAT_ME}"
+	read -p "Do you want to continue? [y/N]?" line </dev/tty
+	case "$line" in
+		y)
+			echo "Beginning format..."
+		;;
+		*)
+			echo "Format cancelled!"
+			return 1
+		;;
+	esac
 	case "${FSTYPE}" in
 		zfs)
 			zvol_create_fs_zfs
@@ -342,42 +431,7 @@ zvol_fs_type() {
 	esac
 }
 
-zvol_create_fs_zfs() {
-	errorfunc='zvol_create_fs_zfs'
-	echo "Creating ZFS Filesystem on /dev/zvol/${ZROOT}/${VOLNAME}"
-	zpool create "${VOLNAME}" /dev/zvol/"${ZROOT}"/"${VOLNAME}" || return 1
-}
-zvol_create_fs_ufs() {
-	errorfunc='zvol_create_fs_ufs'
-	echo "Creating UFS Filesystem on /dev/zvol/${ZROOT}/${VOLNAME}"
-	newfs -E -J -O 2 -U /dev/zvol/"${ZROOT}"/"${VOLNAME}" || return 1
-}
-zvol_create_fs_fat32() {
-	errorfunc='zvol_create_fs_fat32'
-	echo "Creating FAT32 Filesystem on /dev/zvol/${ZROOT}/${VOLNAME}"
-	newfs_msdos -F32 /dev/zvol/"${ZROOT}"/"${VOLNAME}" || return 1
-}
-zvol_create_fs_ext2() {
-	errorfunc='zvol_create_fs_ext2'
-	echo "Creating ext2 Filesystem on /dev/zvol/${ZROOT}/${VOLNAME}"
-	mke2fs -t ext2 /dev/zvol/"${ZROOT}"/"${VOLNAME}" || return 1
-}
-zvol_create_fs_ext3() {
-	errorfunc='zvol_create_fs_ext3'
-	echo "Creating ext3 Filesystem on /dev/zvol/${ZROOT}/${VOLNAME}"
-	mke2fs -t ext3 /dev/zvol/"${ZROOT}"/"${VOLNAME}" || return 1
-}
-zvol_create_fs_ext4() {
-	errorfunc='zvol_create_fs_ext4'
-	echo "Creating ext4 Filesystem on /dev/zvol/${ZROOT}/${VOLNAME}"
-	mke2fs -t ext4 /dev/zvol/"${ZROOT}"/"${VOLNAME}" || return 1
-}
-zvol_create_fs_xfs() {
-	errorfunc='zvol_create_fs_xfs'
-	echo "Creating XFS Filesystem on /dev/zvol/${ZROOT}/${VOLNAME}"
-	mkfs.xfs /dev/zvol/"${ZROOT}"/"${VOLNAME}" || return 1
-}
-
+# Type Management
 zvol_type_select() {
 	errorfunc='zvol_type_select'
 	if [ "${VOLTYPE}" = raw ]; then
@@ -386,7 +440,6 @@ zvol_type_select() {
 		zvol_type_virtualbox
 	fi
 }
-
 zvol_type_virtualbox() {
 	errorfunc='zvol_type_virtualbox'
 	create_vzol || return 1
@@ -399,64 +452,41 @@ zvol_type_raw() {
 	echo "You can find your zvol at: /dev/zvol/${ZROOT}/${VOLNAME}"
 }
 
-create_zvol() {
-	errorfunc='create_vzol'
-	if [ ! -e /dev/zvol/"${ZROOT}"/"${VOLNAME}" ]; then
-		"${VOLMK}" "${SIZE}" "${ZROOT}"/"${VOLNAME}"
-	fi
-	sudo chown "${ZUSER}" /dev/zvol/"${ZROOT}"/"${VOLNAME}"
-	sudo echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | sudo tee -a /etc/devfs.conf
-	if [ ! "${FSTYPE}" = DIE ]; then
-		zvol_fs_type || return 1
-	fi
-	if [ ! "${IMPORTIMG}" = DIE ]; then
-		zvol_import_img || return 1
-	fi
+# zvol Format Functions
+zvol_create_fs_zfs() {
+	errorfunc='zvol_create_fs_zfs'
+	echo "Creating ZFS Filesystem on /dev/zvol/${FORMAT_ME}"
+	zpool create "${VOLNAME}" /dev/zvol/"${FORMAT_ME}" || return 1
 }
-
-zvol_import_img() {
-	errorfunc='zvol_import_img'
-	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
-		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} | pv -petrb | of=/dev/zvol/${ZROOT}/${VOLNAME}"
-	else
-		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
-	fi
-	echo "Now importing ${IMPORTIMG} to /dev/zvol/${ZROOT}/${VOLNAME}"
-	echo "This will DESTROY all data on /dev/zvol/${ZROOT}/${VOLNAME}"
-	read -p "Do you want to continue? [y/N]?" line </dev/tty
-	case "$line" in
-		y)
-			echo "Beginning import..."
-			"${VZVOL_IMPORT_CMD}"
-		;;
-		*)
-			echo "Import cancelled!"
-			return 1
-		;;
-	esac
+zvol_create_fs_ufs() {
+	errorfunc='zvol_create_fs_ufs'
+	echo "Creating UFS Filesystem on /dev/zvol/${FORMAT_ME}"
+	newfs -E -J -O 2 -U /dev/zvol/"${FORMAT_ME}" || return 1
 }
-
-create_vmdk() {
-	errorfunc='create_vmdk'
-	if [ ! -d /home/"${ZUSER}"/VBoxdisks/ ]; then
-		mkdir -p /home/"${ZUSER}"/VBoxdisks/
-	fi
-	if [ ! -e /home/"${ZUSER}"/VBoxdisks/"${VOLNAME}".vmdk ]; then
-		echo "Creating /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk"
-		sleep 3
-		VBoxManage internalcommands createrawvmdk \
-		-filename /home/"${ZUSER}"/VBoxdisks/"${VOLNAME}".vmdk \
-		-rawdisk /dev/zvol/"${ZROOT}"/"${VOLNAME}"
-	else
-		echo "/home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk" already exists.
-		return 1
-	fi
+zvol_create_fs_fat32() {
+	errorfunc='zvol_create_fs_fat32'
+	echo "Creating FAT32 Filesystem on /dev/zvol/${FORMAT_ME}"
+	newfs_msdos -F32 /dev/zvol/"${FORMAT_ME}" || return 1
 }
-
-error_code() {
-	echo "Error occurred in function ${errorfunc}"
-	echo "Exiting"
-	exit 1
+zvol_create_fs_ext2() {
+	errorfunc='zvol_create_fs_ext2'
+	echo "Creating ext2 Filesystem on /dev/zvol/${FORMAT_ME}"
+	mke2fs -t ext2 /dev/zvol/"${FORMAT_ME}" || return 1
+}
+zvol_create_fs_ext3() {
+	errorfunc='zvol_create_fs_ext3'
+	echo "Creating ext3 Filesystem on /dev/zvol/${FORMAT_ME}"
+	mke2fs -t ext3 /dev/zvol/"${FORMAT_ME}" || return 1
+}
+zvol_create_fs_ext4() {
+	errorfunc='zvol_create_fs_ext4'
+	echo "Creating ext4 Filesystem on /dev/zvol/${FORMAT_ME}"
+	mke2fs -t ext4 /dev/zvol/"${FORMAT_ME}" || return 1
+}
+zvol_create_fs_xfs() {
+	errorfunc='zvol_create_fs_xfs'
+	echo "Creating XFS Filesystem on /dev/zvol/${FORMAT_ME}"
+	mkfs.xfs /dev/zvol/"${FORMAT_ME}" || return 1
 }
 
 getargz "$@" || error_code
