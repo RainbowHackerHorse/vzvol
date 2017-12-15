@@ -19,6 +19,79 @@ else
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')
 fi
 
+show_help() {
+	errorfunc='show_help'
+	cat << 'EOT'
+	
+	virtbox-zvol is a shell script designed to help automate the process of 
+	creating a ZFS zvol for use as a storage unit for virtualization, or testing.
+	vzvol was originally created to allow you to back a light .VMDK with a zvol for 
+	use with VirtualBox, however additional functionality has been added over time to
+	make vzvol a general-use program. I hope you find it useful!
+
+	This script is released under the 2-clause BSD license.
+	(c) 2017 RainbowHackerHorse
+
+	https://github.com/RainbowHackerHorse/vzvol
+
+	-h | --help
+	Shows this help
+
+	-s | --size
+	Allows you to set a size for the zvol.
+	Size should be set using M or G.
+	Example: --size 10G | -s 1024M
+	Defaults to 10G if nothing specified.
+
+	-u | --user
+	Sets the user under which we grant permissions for the zvol.
+	Defaults to your username if nothing is specified.
+
+	-v | --volume
+	MANDATORY OPTION!!
+	Sets the zvol name. If nothing is specified or this option is left off,
+	the command will FAIL!
+
+	-p | --pool
+	This flag will allow you to override the logic to choose the zpool you want
+	your zvol on.
+	By default, this script selects the first zpool available, unless your 
+	first pool is "bootpool" (as with an encrypted system).
+	If your first pool is "bootpool", this script will default to the second
+	listed pool, usually "zroot" in a default install.
+
+	--sparse
+	The sparse flag allows you to create a sparse zvol instead of a pre-allocated one.
+	Be careful using this option! Disk space will not be pre-allocated prior to creating
+	the zvol which can cause you to run out of room in your VM!
+
+	-t | --type
+	This option allows you to set the disk type behavior.
+	The following types are accepted:
+	virtualbox 	- The default behavior, vzvol will create a shim VMDK to point to the created 
+				zvol.
+	raw			- Create a raw, normal zvol with no shim, in the default location of 
+				/dev/zvol/poolname/volumename
+	--file-system
+	Setting this flag allows you to format the zvol with your choice of filesystem.
+	The default for vzvol is to not create a filesystem on the new zvol.
+	The following types are accepted:
+	Filesystems with support in FreeBSD:
+		zfs 		- Creates a zfs filesystem, using the name set in --volume as the pool name.
+		ufs 		- Create a FreeBSD compatible UFS2 filesystem.
+		fat32		- Create an MS-DOS compatible FAT32 filesystem.
+
+	Filesystems that require a port be installed:
+	*REQUIRES* sysutils/e2fsprogs!
+		ext2		- Creates a Linux-compatible ext2 filesystem.
+		ext3		- Creates a Linux-compatible ext3 filesystem. 	
+		ext4		- Creates a Linux-compatible ext4 filesystem. 	
+	*REQUIRES* sysutils/xfsprogs!
+		xfs 		- Create an XFS filesystem. 
+	
+EOT
+}
+
 getargz() {
 	errorfunc='getargz'
 	while :; do
@@ -98,74 +171,6 @@ getargz() {
 		esac
 		shift
 	done
-}
-
-show_help() {
-	errorfunc='show_help'
-	cat << 'EOT'
-	
-	virtbox-zvol is a shell script designed to help automate the process of 
-	creating a ZFS zvol for use as a storage unit to back a light .VMDK
-
-	This script is released under the 2-clause BSD license.
-	(c) 2017 RainbowHackerHorse
-
-	-h | --help
-	Shows this help
-
-	-s | --size
-	Allows you to set a size for the zvol.
-	Size should be set using M or G.
-	Example: --size 10G | -s 1024M
-	Defaults to 10G if nothing specified.
-
-	-u | --user
-	Sets the user under which we grant permissions for the zvol.
-	Defaults to your username if nothing is specified.
-
-	-v | --volume
-	MANDATORY OPTION!!
-	Sets the zvol name. If nothing is specified or this option is left off,
-	the command will FAIL!
-
-	-p | --pool
-	This flag will allow you to override the logic to choose the zpool you want
-	your zvol on.
-	By default, this script selects the first zpool available, unless your 
-	first pool is "bootpool" (as with an encrypted system).
-	If your first pool is "bootpool", this script will default to the second
-	listed pool, usually "zroot" in a default install.
-
-	--sparse
-	The sparse flag allows you to create a sparse zvol instead of a pre-allocated one.
-	Be careful using this option! Disk space will not be pre-allocated prior to creating
-	the zvol which can cause you to run out of room in your VM!
-
-	-t | --type
-	This option allows you to set the disk type behavior.
-	The following types are accepted:
-	virtualbox 	- The default behavior, vzvol will create a shim VMDK to point to the created 
-				zvol.
-	raw			- Create a raw, normal zvol with no shim, in the default location of 
-				/dev/zvol/poolname/volumename
-	--file-system
-	Setting this flag allows you to format the zvol with your choice of filesystem.
-	The default for vzvol is to not create a filesystem on the new zvol.
-	The following types are accepted:
-	Filesystems with support in FreeBSD:
-		zfs 		- Creates a zfs filesystem, using the name set in --volume as the pool name.
-		ufs 		- Create a FreeBSD compatible UFS2 filesystem.
-		fat32		- Create an MS-DOS compatible FAT32 filesystem.
-
-	Filesystems that require a port be installed:
-	*REQUIRES* sysutils/e2fsprogs!
-		ext2		- Creates a Linux-compatible ext2 filesystem.
-		ext3		- Creates a Linux-compatible ext3 filesystem. 	
-		ext4		- Creates a Linux-compatible ext4 filesystem. 	
-	*REQUIRES* sysutils/xfsprogs!
-		xfs 		- Create an XFS filesystem. 
-	
-EOT
 }
 
 checkzvol() {
