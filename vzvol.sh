@@ -11,7 +11,8 @@ VOLNAME=DIE
 VOLMK="sudo zfs create -V"
 FSTYPE=DIE
 errorfunc='MAIN'
-
+IMPORTIMG=DIE
+VZVOL_PROGRESS_FLAG="NO"
 
 if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
@@ -19,96 +20,20 @@ else
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')
 fi
 
-getargz() {
-	errorfunc='getargz'
-	while :; do
-		case $1 in
-			-h|--help)
-				show_help
-				exit
-			;;
-			-s|--size)
-				if [ "$2" ]; then
-					SIZE="${2}"
-					# Add input check to ensure proper syntax
-					shift
-				else
-					echo "Please provide a size!"
-					exit 1
-				fi
-			;;
-			-u|--user)
-				if [ "$2" ]; then
-					ZUSER="${2}"
-					# Add input check to ensure proper syntax
-					shift
-				else
-					echo "Please provide a username!"
-					exit 1
-				fi
-			;;
-			-v|--volume)
-				if [ "$2" ]; then
-					VOLNAME="${2}"
-					# Add input check to ensure proper syntax
-					shift
-				else
-					echo "Please provide a zvol name!"
-					exit 1
-				fi
-			;;
-			-p|--pool)
-				if [ "$2" ]; then
-					ZROOT="${2}"
-					shift
-				else
-					echo "Please provide a pool name!"
-					exit 1
-				fi
-			;;
-			-t|--type)
-				if [ "$2" ]; then
-					VOLTYPE="${2}"
-					if [ "${VOLTYPE}" != "raw" -a "${VOLTYPE}" != "virtualbox" ]; then
-						echo "Error. Invalid type ${VOLTYPE} selected!"
-						exit 1
-					fi
-					shift
-				else
-					echo "Type not specified!"
-					exit 1
-				fi
-			;;
-			--sparse)
-				VOLMK="sudo zfs create -s -V"
-				shift
-			;;
-			--file-system)
-				if [ "$2" ]; then
-					FSTYPE="${2}"
-					if [ "${FSTYPE}" != "zfs" -a "${FSTYPE}" != "ufs" -a "${FSTYPE}" != "fat32" -a "${FSTYPE}" != "ext2" -a "${FSTYPE}" != "ext3" -a "${FSTYPE}" != "ext4" -a "${FSTYPE}" != "xfs" ]; then
-						echo "Error. Invalid filesystem ${FSTYPE} selected!"
-						exit 1
-					fi
-				fi
-				shift
-			;;
-			*)
-				break
-		esac
-		shift
-	done
-}
-
 show_help() {
 	errorfunc='show_help'
 	cat << 'EOT'
 	
 	virtbox-zvol is a shell script designed to help automate the process of 
-	creating a ZFS zvol for use as a storage unit to back a light .VMDK
+	creating a ZFS zvol for use as a storage unit for virtualization, or testing.
+	vzvol was originally created to allow you to back a light .VMDK with a zvol for 
+	use with VirtualBox, however additional functionality has been added over time to
+	make vzvol a general-use program. I hope you find it useful!
 
 	This script is released under the 2-clause BSD license.
 	(c) 2017 RainbowHackerHorse
+
+	https://github.com/RainbowHackerHorse/vzvol
 
 	-h | --help
 	Shows this help
@@ -164,8 +89,124 @@ show_help() {
 		ext4		- Creates a Linux-compatible ext4 filesystem. 	
 	*REQUIRES* sysutils/xfsprogs!
 		xfs 		- Create an XFS filesystem. 
+
+	--import 
+	The --import flag allows you to import the contents of a downloaded disk image to
+	your newly created zvol. This is useful when using a pre-installed VM image, such as
+	https://github.com/RainbowHackerHorse/FreeBSD-On-Linode 
+
+	-p
+	The -p flag is used with --import to show a progress bar for image data importation
+	to the vzol. -p requires that sysutils/pv be installed.
 	
 EOT
+}
+
+getargz() {
+	errorfunc='getargz'
+	while :; do
+		case $1 in
+			-h|--help)
+				show_help
+				exit
+			;;
+			-s|--size)
+				if [ "$2" ]; then
+					SIZE="${2}"
+					# Add input check to ensure proper syntax
+					shift
+				else
+					echo "Please provide a size!"
+					return 1
+				fi
+			;;
+			-u|--user)
+				if [ "$2" ]; then
+					ZUSER="${2}"
+					# Add input check to ensure proper syntax
+					shift
+				else
+					echo "Please provide a username!"
+					return 1
+				fi
+			;;
+			-v|--volume)
+				if [ "$2" ]; then
+					VOLNAME="${2}"
+					# Add input check to ensure proper syntax
+					shift
+				else
+					echo "Please provide a zvol name!"
+					return 1
+				fi
+			;;
+			-p|--pool)
+				if [ "$2" ]; then
+					ZROOT="${2}"
+					shift
+				else
+					echo "Please provide a pool name!"
+					return 1
+				fi
+			;;
+			-t|--type)
+				if [ "$2" ]; then
+					VOLTYPE="${2}"
+					if [ "${VOLTYPE}" != "raw" -a "${VOLTYPE}" != "virtualbox" ]; then
+						echo "Error. Invalid type ${VOLTYPE} selected!"
+						return 1
+					fi
+					shift
+				else
+					echo "Type not specified!"
+					return 1
+				fi
+			;;
+			--sparse)
+				VOLMK="sudo zfs create -s -V"
+				shift
+			;;
+			--file-system)
+				if [ "$2" ]; then
+					if [ ! "${IMPORTIMG}" = "DIE" ]; then
+						echo "--file-system is incompatible with --import."
+						return 1
+					fi
+					FSTYPE="${2}"
+					if [ "${FSTYPE}" != "zfs" -a "${FSTYPE}" != "ufs" -a "${FSTYPE}" != "fat32" -a "${FSTYPE}" != "ext2" -a "${FSTYPE}" != "ext3" -a "${FSTYPE}" != "ext4" -a "${FSTYPE}" != "xfs" ]; then
+						echo "Error. Invalid filesystem ${FSTYPE} selected!"
+						return 1
+					fi
+				fi
+				shift
+			;;
+			--import)
+				if [ ! "${FSTYPE}" = "DIE" ]; then
+						echo "--import is incompatible with --file-system."
+						return 1
+				fi
+				if [ "$2" ]; then
+					if [ ! -f "${2}" ]; then
+						echo "Error. ${2} does not exist or has incorrect permissions, and can not be imported"
+						return 1
+					fi
+					IMPORTIMG="${2}"
+				fi
+				shift
+			;;
+			-p)
+				if pkg info | grep -vq pv; then
+					echo "Error! You need to install sysutils/pv first, or don't use -p"
+					return 1
+				fi
+				VZVOL_PROGRESS_FLAG="YES"
+				shift
+			;;
+			*)
+				break
+		esac
+		shift
+	done
 }
 
 checkzvol() {
@@ -284,6 +325,31 @@ create_zvol() {
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
 	fi
+	if [ ! "${IMPORTIMG}" = DIE ]; then
+		zvol_import_img || return 1
+	fi
+}
+
+zvol_import_img() {
+	errorfunc='zvol_import_img'
+	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
+		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} | pv -petrb | of=/dev/zvol/${ZROOT}/${VOLNAME}"
+	else
+		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
+	fi
+	echo "Now importing ${IMPORTIMG} to /dev/zvol/${ZROOT}/${VOLNAME}"
+	echo "This will DESTROY all data on /dev/zvol/${ZROOT}/${VOLNAME}"
+	read -p "Do you want to continue? [y/N]?" line </dev/tty
+	case "$line" in
+		y)
+			echo "Beginning import..."
+			"${VZVOL_IMPORT_CMD}"
+		;;
+		*)
+			echo "Import cancelled!"
+			return 1
+		;;
+	esac
 }
 
 create_vmdk() {
