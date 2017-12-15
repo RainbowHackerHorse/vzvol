@@ -12,7 +12,7 @@ VOLMK="sudo zfs create -V"
 FSTYPE=DIE
 errorfunc='MAIN'
 IMPORTIMG=DIE
-
+VZVOL_PROGRESS_FLAG="NO"
 
 if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
@@ -94,6 +94,10 @@ show_help() {
 	The --import flag allows you to import the contents of a downloaded disk image to
 	your newly created zvol. This is useful when using a pre-installed VM image, such as
 	https://github.com/RainbowHackerHorse/FreeBSD-On-Linode 
+
+	-p
+	The -p flag is used with --import to show a progress bar for image data importation
+	to the vzol. -p requires that sysutils/pv be installed.
 	
 EOT
 }
@@ -181,6 +185,22 @@ getargz() {
 						echo "--import is incompatible with --file-system."
 						return 1
 				fi
+				if [ "$2" ]; then
+					if [ ! -f "${2}" ]; then
+						echo "Error. ${2} does not exist or has incorrect permissions, and can not be imported"
+						return 1
+					fi
+					IMPORTIMG="${2}"
+				fi
+				shift
+			;;
+			-p)
+				if pkg info | grep -vq pv; then
+					echo "Error! You need to install sysutils/pv first, or don't use -p"
+					return 1
+				fi
+				VZVOL_PROGRESS_FLAG="YES"
+				shift
 			;;
 			*)
 				break
@@ -305,6 +325,31 @@ create_zvol() {
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
 	fi
+	if [ ! "${IMPORTIMG}" = DIE ]; then
+		zvol_import_img || return 1
+	fi
+}
+
+zvol_import_img() {
+	errorfunc='zvol_import_img'
+	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
+		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} | pv -petrb | of=/dev/zvol/${ZROOT}/${VOLNAME}"
+	else
+		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
+	fi
+	echo "Now importing ${IMPORTIMG} to /dev/zvol/${ZROOT}/${VOLNAME}"
+	echo "This will DESTROY all data on /dev/zvol/${ZROOT}/${VOLNAME}"
+	read -p "Do you want to continue? [y/N]?" line </dev/tty
+	case "$line" in
+		y)
+			echo "Beginning import..."
+			"${VZVOL_IMPORT_CMD}"
+		;;
+		*)
+			echo "Import cancelled!"
+			return 1
+		;;
+	esac
 }
 
 create_vmdk() {
