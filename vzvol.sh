@@ -119,9 +119,9 @@ show_help() {
 	--list
 	List all zvols on your system, the type, and any associated .VMDK files.
 	Example output:
-	ZVOL              TYPE        VMDK                        
+	ZVOL              TYPE        VMDK                                      USED   SIZE
 	zroot/smartos     RAW         none                        
-	zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk             
+	zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk  1.51G  10G         
 	
 	
 EOT
@@ -273,7 +273,7 @@ getargz() {
 
 # Display Data
 vzvol_list() {
-	(printf "ZVOL TYPE VMDK USED SIZE \n" \
+	(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
 	; vzvol_list_type) | column -t
 }
 vzvol_list_type() {
@@ -282,10 +282,15 @@ vzvol_list_type() {
 		purevolname=$(echo $vols | awk -F "/" '{print $2}')
 		purevolused=$(zfs get referenced $vols | awk '{print $3}' | grep -v VALUE)
 		purevolsize=$(zfs get used $vols | awk '{print $3}' | grep -v VALUE)
-		if [ -f "${HOME}/VBoxdisks/${purevolname}.vmdk" ]; then
-			echo "${vols} VirtualBox ${HOME}/VBoxdisks/${purevolname}.vmdk $purevolused $purevolsize"
+		if [ $(zfs get custom:FS $vols | grep -q bad) ]; then
+			zvolfstype="none"
 		else
-			echo "${vols} RAW none $purevolused $purevolsize"
+			zvolfstype=$(zfs get custom:FS $vols | awk '{print $3}' | grep -v FS)
+		fi
+		if [ -f "${HOME}/VBoxdisks/${purevolname}.vmdk" ]; then
+			echo "${vols} VirtualBox ${HOME}/VBoxdisks/${purevolname}.vmdk $purevolused $purevolsize $zvolfstype"
+		else
+			echo "${vols} RAW none $purevolused $purevolsize $zvolfstype"
 		fi
 	done
 }
@@ -314,6 +319,7 @@ create_zvol() {
 	fi
 	sudo chown "${ZUSER}" /dev/zvol/"${ZROOT}"/"${VOLNAME}"
 	sudo echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | sudo tee -a /etc/devfs.conf
+	zfs set custom:FS=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
 	fi
@@ -357,6 +363,7 @@ zvol_import_img() {
 	case "$line" in
 		y)
 			echo "Beginning import..."
+			zfs set custom:FS=imported "${ZROOT}/${VOLNAME}"
 			"${VZVOL_IMPORT_CMD}"
 		;;
 		*)
@@ -410,6 +417,7 @@ zvol_fs_type() {
 			return 1
 		;;
 	esac
+	zfs set custom:FS="${FSTYPE}" "${FORMAT_ME}"
 	case "${FSTYPE}" in
 		zfs)
 			zvol_create_fs_zfs

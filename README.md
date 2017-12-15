@@ -125,6 +125,6 @@ Example: vzvol --delete zroot/smartos11
 --list
 List all zvols on your system, the type, and any associated .VMDK files.
 Example output:
-ZVOL              TYPE        VMDK                        
+ZVOL              TYPE        VMDK                                      USED   SIZE
 zroot/smartos     RAW         none                        
-zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk  
+zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk  1.51G  10G   
