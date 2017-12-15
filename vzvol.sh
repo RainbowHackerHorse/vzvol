@@ -83,7 +83,7 @@ getargz() {
 				VOLMK="sudo zfs create -s -V"
 				shift
 			;;
-			-t|--type)
+			--file-system)
 				if [ "$2" ]; then
 					FSTYPE="${2}"
 					if [ "${FSTYPE}" != "zfs" -a "${FSTYPE}" != "ufs" -a "${FSTYPE}" != "fat32" -a "${FSTYPE}" != "ext2" -a "${FSTYPE}" != "ext3" -a "${FSTYPE}" != "ext4" -a "${FSTYPE}" != "xfs" ]; then
