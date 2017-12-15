@@ -123,8 +123,11 @@ You can get this information from running vzvol --list or zfs list -t volume
 Example: vzvol --delete zroot/smartos11
 
 --list
-List all zvols on your system, the type, and any associated .VMDK files.
+List all zvols on your system, the type, any associated .VMDK files, how much space on disk
+is used by the zvol, the maximum size of the zvol capacity, and the Filesystem, if
+vzvol can determine it. Imported images will list FS as "imported", and any zvol that doesn't
+have custom:FS set will report "unknown"
 Example output:
-ZVOL              TYPE        VMDK                                      USED   SIZE
-zroot/smartos     RAW         none                        
-zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk  1.51G  10G   
+ZVOL              TYPE        VMDK                                      USED   SIZE  FS
+zroot/smartos     RAW         none                                      20G	   50G   zfs
+zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk  1.51G  10G   ext4 
