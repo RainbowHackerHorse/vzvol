@@ -1,19 +1,25 @@
 #!/bin/sh
 
-ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
-ZUSER=$(whoami)
+ZROOT=$( zpool list | awk 'NR==3 {print $1}' )
+ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
-VOLMK="sudo zfs create -V"
+VOLMK=""$VZVOL_SU_CMD" zfs create -V"
 FSTYPE=DIE
-errorfunc='MAIN'
+errorfunc=MAIN
 IMPORTIMG=DIE
-VZVOL_PROGRESS_FLAG="NO"
+VZVOL_PROGRESS_FLAG=NO
 
-if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
-	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
+if pkg info | grep -q sudo; then
+	VZVOL_SU_CMD="sudo"
 else
-	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')
+	VZVOL_SU_CMD="su - root -c"
+fi
+
+if [ "$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }' )" = bootpool ]; then
+	ZROOT=$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }' )
+else
+	ZROOT=$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }' )
 fi
 
 show_help() {
@@ -128,7 +134,7 @@ EOT
 
 # Script Maintainence Functions
 error_code() {
-	echo "Error occurred in function ${errorfunc}"
+	echo "Error occurred in function $errorfunc"
 	echo "Exiting"
 	exit 1
 }
@@ -182,8 +188,8 @@ getargz() {
 			-t|--type)
 				if [ "$2" ]; then
 					VOLTYPE="${2}"
-					if [ "${VOLTYPE}" != "raw" -a "${VOLTYPE}" != "virtualbox" ]; then
-						echo "Error. Invalid type ${VOLTYPE} selected!"
+					if [ "$VOLTYPE" != "raw" -a "$VOLTYPE" != "virtualbox" ]; then
+						echo "Error. Invalid type $VOLTYPE selected!"
 						return 1
 					fi
 					shift
@@ -193,7 +199,7 @@ getargz() {
 				fi
 			;;
 			--sparse)
-				VOLMK="sudo zfs create -s -V"
+				VOLMK=""$VZVOL_SU_CMD" zfs create -s -V"
 				shift
 			;;
 			--file-system)
@@ -231,7 +237,7 @@ getargz() {
 				shift
 			;;
 			--delete)
-				if [ $(zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}") ]; then
+				if [ $( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}" ) ]; then
 					echo "Error, zvol ${2} does not exist."
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
 					return 1
@@ -247,7 +253,7 @@ getargz() {
 				exit
 			;;
 			--format)
-				if [ $(zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}") ]; then
+				if [ $( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}" ) ]; then
 					echo "Error, zvol ${2} does not exist."
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
 					return 1
@@ -276,13 +282,13 @@ vzvol_list() {
 	; vzvol_list_type) | column -t
 }
 vzvol_list_type() {
-	list_my_vols=$(zfs list -t volume | awk '{print $1}' | grep -v NAME)
+	list_my_vols=$( zfs list -t volume | awk '!/NAME/ {print $1}' )
 	for vols in $list_my_vols; do
-		purevolname=$(echo $vols | awk -F "/" '{print $2}')
-		purevolused=$(zfs get referenced $vols | awk '{print $3}' | grep -v VALUE)
-		purevolsize=$(zfs get used $vols | awk '{print $3}' | grep -v VALUE)
+		purevolname=$( echo $vols | awk -F "/" '{print $2}' )
+		purevolused=$( zfs get referenced $vols | awk '!/VALUE/ {print $3}' )
+		purevolsize=$( zfs get used $vols | awk '!/VALUE/ {print $3}' )
 		if zfs get custom:FS $vols 2>/dev/null | grep -q FS; then
-			zvolfstype=$(zfs get custom:FS $vols | awk '{print $3}' | grep -v FS)
+			zvolfstype=$( zfs get custom:FS $vols | awk '!/FS/ {print $3}' )
 		else
 			zvolfstype="unknown"
 		fi
@@ -295,8 +301,8 @@ vzvol_list_type() {
 }
 
 # File Creation and Deletion
-create_vmdk() {
-	errorfunc='create_vmdk'
+vmdk_create() {
+	errorfunc='vmdk_create'
 	if [ ! -d /home/"${ZUSER}"/VBoxdisks/ ]; then
 		mkdir -p /home/"${ZUSER}"/VBoxdisks/
 	fi
@@ -305,19 +311,19 @@ create_vmdk() {
 		sleep 3
 		VBoxManage internalcommands createrawvmdk \
 		-filename /home/"${ZUSER}"/VBoxdisks/"${VOLNAME}".vmdk \
-		-rawdisk /dev/zvol/"${ZROOT}"/"${VOLNAME}"
+		-rawdisk /dev/zvol/"${ZROOT}/${VOLNAME}"
 	else
 		echo "/home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk" already exists.
 		return 1
 	fi
 }
-create_zvol() {
-	errorfunc='create_vzol'
-	if [ ! -e /dev/zvol/"${ZROOT}"/"${VOLNAME}" ]; then
-		"${VOLMK}" "${SIZE}" "${ZROOT}"/"${VOLNAME}"
+zvol_create() {
+	errorfunc='vzol_create'
+	if [ ! -e /dev/zvol/"${ZROOT}/${VOLNAME}" ]; then
+		"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
 	fi
-	sudo chown "${ZUSER}" /dev/zvol/"${ZROOT}"/"${VOLNAME}"
-	sudo echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | sudo tee -a /etc/devfs.conf
+	"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
+	echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
 	zfs set custom:FS=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
@@ -373,8 +379,8 @@ zvol_import_img() {
 }
 
 # Checks
-checkzvol() {
-	errorfunc='checkzvol'
+zvol_check() {
+	errorfunc='zvol_check'
 	if [ "${VOLNAME}" = 'DIE' ]; then
 		echo "Please provide a zvol name. See --help for more information."
 		return 1
@@ -389,10 +395,10 @@ vzvol_fscheck() {
 }
 zvol_fs_type() {
 	errorfunc='zvol_fs_type'
-	if [ "${FSTYPE}" = "ext2" -a "${FSTYPE}" = "ext3" -a "${FSTYPE}" = "ext4" -a "${FSTYPE}" = "xfs" ]; then
+	if [ "${FSTYPE}" = "ext2" -o "${FSTYPE}" = "ext3" -o "${FSTYPE}" = "ext4" -o "${FSTYPE}" = "xfs" ]; then
 		echo "Warning. You have selected an FS type supplied by a port. Now checking to see if the port is installed."
 		echo "Please note that unsupported FSes may exhibit unexpected behavior!"
-		if [ "${FSTYPE}" = "ext2" -a "${FSTYPE}" = "ext3" -a "${FSTYPE}" = "ext4" ]; then
+		if [ "${FSTYPE}" = "ext2" -o "${FSTYPE}" = "ext3" -o "${FSTYPE}" = "ext4" ]; then
 			if pkg info | grep -vq e2fsprogs; then
 				echo "Error! You need to install sysutils/e2fsprogs first!"
 				return 1
@@ -445,16 +451,16 @@ zvol_fs_type() {
 # Type Management
 zvol_type_select() {
 	errorfunc='zvol_type_select'
-	if [ "${VOLTYPE}" = raw ]; then
+	if [ "$VOLTYPE" = raw ]; then
 		zvol_type_raw
-	elif [ "${VOLTYPE}" = virtualbox ]; then
+	elif [ "$VOLTYPE" = virtualbox ]; then
 		zvol_type_virtualbox
 	fi
 }
 zvol_type_virtualbox() {
 	errorfunc='zvol_type_virtualbox'
 	create_vzol || return 1
-	create_vmdk || return 1
+	vmdk_create || return 1
 	echo "Please use /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk as your VM Disk"
 }
 zvol_type_raw() {
@@ -501,6 +507,6 @@ zvol_create_fs_xfs() {
 }
 
 getargz "$@" || error_code
-checkzvol || error_code
+zvol_check || error_code
 zvol_type_select || error_code
 exit 0
