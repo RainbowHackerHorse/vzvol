@@ -32,6 +32,8 @@ If you've contributed, please ensure you edit CONTRIBUTORS and add your GitHub u
 to the bottom if it isn't already listed!
 
 ## Help
+
+```
 virtbox-zvol is a shell script designed to help automate the process of 
 creating a ZFS zvol for use as a storage unit for virtualization, or testing.
 vzvol was originally created to allow you to back a light .VMDK with a zvol for 
@@ -133,3 +135,4 @@ Example output:
 ZVOL              TYPE        VMDK                                      USED   SIZE  FS
 zroot/smartos     RAW         none                                      20G	   50G   zfs
 zroot/ubuntu1604  VirtualBox  /home/username/VBoxDisks/ubuntu1604.vmdk  1.51G  10G   ext4 
+```
