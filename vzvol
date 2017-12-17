@@ -6,9 +6,9 @@ SIZE=10G
 VOLNAME=DIE
 VOLMK="sudo zfs create -V"
 FSTYPE=DIE
-errorfunc='MAIN'
+errorfunc=MAIN
 IMPORTIMG=DIE
-VZVOL_PROGRESS_FLAG="NO"
+VZVOL_PROGRESS_FLAG=NO
 
 if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
@@ -128,7 +128,7 @@ EOT
 
 # Script Maintainence Functions
 error_code() {
-	echo "Error occurred in function ${errorfunc}"
+	echo "Error occurred in function $errorfunc"
 	echo "Exiting"
 	exit 1
 }
@@ -182,8 +182,8 @@ getargz() {
 			-t|--type)
 				if [ "$2" ]; then
 					VOLTYPE="${2}"
-					if [ "${VOLTYPE}" != "raw" -a "${VOLTYPE}" != "virtualbox" ]; then
-						echo "Error. Invalid type ${VOLTYPE} selected!"
+					if [ "$VOLTYPE" != "raw" -a "$VOLTYPE" != "virtualbox" ]; then
+						echo "Error. Invalid type $VOLTYPE selected!"
 						return 1
 					fi
 					shift
@@ -445,9 +445,9 @@ zvol_fs_type() {
 # Type Management
 zvol_type_select() {
 	errorfunc='zvol_type_select'
-	if [ "${VOLTYPE}" = raw ]; then
+	if [ "$VOLTYPE" = raw ]; then
 		zvol_type_raw
-	elif [ "${VOLTYPE}" = virtualbox ]; then
+	elif [ "$VOLTYPE" = virtualbox ]; then
 		zvol_type_virtualbox
 	fi
 }
