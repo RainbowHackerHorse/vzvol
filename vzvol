@@ -312,7 +312,7 @@ vmdk_create() {
 	fi
 }
 zvol_create() {
-	errorfunc='create_vzol'
+	errorfunc='vzol_create'
 	if [ ! -e /dev/zvol/"${ZROOT}/${VOLNAME}" ]; then
 		"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
 	fi
@@ -389,10 +389,10 @@ vzvol_fscheck() {
 }
 zvol_fs_type() {
 	errorfunc='zvol_fs_type'
-	if [ "${FSTYPE}" = "ext2" -a "${FSTYPE}" = "ext3" -a "${FSTYPE}" = "ext4" -a "${FSTYPE}" = "xfs" ]; then
+	if [ "${FSTYPE}" = "ext2" -o "${FSTYPE}" = "ext3" -o "${FSTYPE}" = "ext4" -o "${FSTYPE}" = "xfs" ]; then
 		echo "Warning. You have selected an FS type supplied by a port. Now checking to see if the port is installed."
 		echo "Please note that unsupported FSes may exhibit unexpected behavior!"
-		if [ "${FSTYPE}" = "ext2" -a "${FSTYPE}" = "ext3" -a "${FSTYPE}" = "ext4" ]; then
+		if [ "${FSTYPE}" = "ext2" -o "${FSTYPE}" = "ext3" -o "${FSTYPE}" = "ext4" ]; then
 			if pkg info | grep -vq e2fsprogs; then
 				echo "Error! You need to install sysutils/e2fsprogs first!"
 				return 1
