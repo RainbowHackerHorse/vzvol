@@ -28,6 +28,8 @@ https://github.com/RainbowHackerHorse/port-vzvol
 
 ## Contributing
 Fork and open a PR with your changes.
+If you've contributed, please ensure you edit CONTRIBUTORS and add your GitHub username
+to the bottom if it isn't already listed!
 
 ## Help
 virtbox-zvol is a shell script designed to help automate the process of 
