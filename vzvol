@@ -231,7 +231,7 @@ getargz() {
 				shift
 			;;
 			--delete)
-				if [ $(zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}") ]; then
+				if [ $( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}" ) ]; then
 					echo "Error, zvol ${2} does not exist."
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
 					return 1
@@ -247,7 +247,7 @@ getargz() {
 				exit
 			;;
 			--format)
-				if [ $(zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}") ]; then
+				if [ $( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -vq "${2}" ) ]; then
 					echo "Error, zvol ${2} does not exist."
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
 					return 1
@@ -276,13 +276,13 @@ vzvol_list() {
 	; vzvol_list_type) | column -t
 }
 vzvol_list_type() {
-	list_my_vols=$(zfs list -t volume | awk '{print $1}' | grep -v NAME)
+	list_my_vols=$( zfs list -t volume | awk '!/NAME/ {print $1}' )
 	for vols in $list_my_vols; do
-		purevolname=$(echo $vols | awk -F "/" '{print $2}')
-		purevolused=$(zfs get referenced $vols | awk '{print $3}' | grep -v VALUE)
-		purevolsize=$(zfs get used $vols | awk '{print $3}' | grep -v VALUE)
+		purevolname=$( echo $vols | awk -F "/" '{print $2}' )
+		purevolused=$( zfs get referenced $vols | awk '!/VALUE/ {print $3}' )
+		purevolsize=$( zfs get used $vols | awk '!/VALUE/ {print $3}' )
 		if zfs get custom:FS $vols 2>/dev/null | grep -q FS; then
-			zvolfstype=$(zfs get custom:FS $vols | awk '{print $3}' | grep -v FS)
+			zvolfstype=$( zfs get custom:FS $vols | awk '!/FS/ {print $3}' )
 		else
 			zvolfstype="unknown"
 		fi
@@ -295,8 +295,8 @@ vzvol_list_type() {
 }
 
 # File Creation and Deletion
-create_vmdk() {
-	errorfunc='create_vmdk'
+vmdk_create() {
+	errorfunc='vmdk_create'
 	if [ ! -d /home/"${ZUSER}"/VBoxdisks/ ]; then
 		mkdir -p /home/"${ZUSER}"/VBoxdisks/
 	fi
@@ -305,18 +305,18 @@ create_vmdk() {
 		sleep 3
 		VBoxManage internalcommands createrawvmdk \
 		-filename /home/"${ZUSER}"/VBoxdisks/"${VOLNAME}".vmdk \
-		-rawdisk /dev/zvol/"${ZROOT}"/"${VOLNAME}"
+		-rawdisk /dev/zvol/"${ZROOT}/${VOLNAME}"
 	else
 		echo "/home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk" already exists.
 		return 1
 	fi
 }
-create_zvol() {
+zvol_create() {
 	errorfunc='create_vzol'
-	if [ ! -e /dev/zvol/"${ZROOT}"/"${VOLNAME}" ]; then
-		"${VOLMK}" "${SIZE}" "${ZROOT}"/"${VOLNAME}"
+	if [ ! -e /dev/zvol/"${ZROOT}/${VOLNAME}" ]; then
+		"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
 	fi
-	sudo chown "${ZUSER}" /dev/zvol/"${ZROOT}"/"${VOLNAME}"
+	sudo chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
 	sudo echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | sudo tee -a /etc/devfs.conf
 	zfs set custom:FS=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
@@ -373,8 +373,8 @@ zvol_import_img() {
 }
 
 # Checks
-checkzvol() {
-	errorfunc='checkzvol'
+zvol_check() {
+	errorfunc='zvol_check'
 	if [ "${VOLNAME}" = 'DIE' ]; then
 		echo "Please provide a zvol name. See --help for more information."
 		return 1
@@ -454,7 +454,7 @@ zvol_type_select() {
 zvol_type_virtualbox() {
 	errorfunc='zvol_type_virtualbox'
 	create_vzol || return 1
-	create_vmdk || return 1
+	vmdk_create || return 1
 	echo "Please use /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk as your VM Disk"
 }
 zvol_type_raw() {
@@ -501,6 +501,6 @@ zvol_create_fs_xfs() {
 }
 
 getargz "$@" || error_code
-checkzvol || error_code
+zvol_check || error_code
 zvol_type_select || error_code
 exit 0
