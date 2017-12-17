@@ -4,16 +4,22 @@ ZROOT=$( zpool list | awk 'NR==3 {print $1}' )
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
-VOLMK="sudo zfs create -V"
+VOLMK=""$VZVOL_SU_CMD" zfs create -V"
 FSTYPE=DIE
 errorfunc=MAIN
 IMPORTIMG=DIE
 VZVOL_PROGRESS_FLAG=NO
 
-if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
-	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
+if pkg info | grep -q sudo; then
+	VZVOL_SU_CMD="sudo"
 else
-	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')
+	VZVOL_SU_CMD="su - root -c"
+fi
+
+if [ "$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }' )" = bootpool ]; then
+	ZROOT=$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }' )
+else
+	ZROOT=$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }' )
 fi
 
 show_help() {
@@ -193,7 +199,7 @@ getargz() {
 				fi
 			;;
 			--sparse)
-				VOLMK="sudo zfs create -s -V"
+				VOLMK=""$VZVOL_SU_CMD" zfs create -s -V"
 				shift
 			;;
 			--file-system)
@@ -316,8 +322,8 @@ zvol_create() {
 	if [ ! -e /dev/zvol/"${ZROOT}/${VOLNAME}" ]; then
 		"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
 	fi
-	sudo chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
-	sudo echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | sudo tee -a /etc/devfs.conf
+	"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
+	echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
 	zfs set custom:FS=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
