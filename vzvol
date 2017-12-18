@@ -358,7 +358,7 @@ vzvol_delete() {
 zvol_import_img() {
 	errorfunc='zvol_import_img'
 	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
-		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} | pv -petrb | of=/dev/zvol/${ZROOT}/${VOLNAME}"
+		VZVOL_IMPORT_CMD="( pv -n ${IMPORTIMG} | of=/dev/zvol/${ZROOT}/${VOLNAME} )2>&1 | dialog --gauge 'Importing...' 10 70 0"
 	else
 		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
 	fi
