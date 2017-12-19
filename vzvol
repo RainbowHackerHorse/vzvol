@@ -425,12 +425,12 @@ vzvol_pkg_check_freebsd(){
 		echo "Warning. You have selected an FS type supplied by a port. Now checking to see if the port is installed."
 		echo "Please note that unsupported FSes may exhibit unexpected behavior!"
 		if [ "${FSTYPE}" = "ext2" -o "${FSTYPE}" = "ext3" -o "${FSTYPE}" = "ext4" ]; then
-			if [ $( pkg info | grep -q e2fsprogs ) = 1 ]; then
+			if [ ! $( pkg info | grep -q e2fsprogs ) ]; then
 				echo "Error! You need to install sysutils/e2fsprogs first!"
 				return 1
 			fi
 		elif [ "${FSTYPE}" = "xfs" ]; then
-			if [ $( pkg info | grep -q xfsprogs ) = 1 ]; then
+			if [ ! $( pkg info | grep -q xfsprogs ) ]; then
 				echo "Error! You need to install sysutils/xfsprogs first!"
 				return 1
 			fi
@@ -473,14 +473,14 @@ vzvol_pkg_distrocheck() {
 }
 vzvol_pkg_DEB() {
 	if [ "${FSTYPE}" = "xfs" ]; then
-		if [ $( dpkg -l | grep -q xfsprogs ) = 1 ]; then
+		if [ ! $( dpkg -l | grep -q xfsprogs ) ]; then
 			echo "Error! You need to install xfsprogs first!"
 			echo "Run apt-get install xfsprogs"
 			return 1
 		fi
 	fi
 	if [ "${FSTYPE}" = "fat32" ]; then
-		if [ $( dpkg -l | grep -q dosfstools ) = 1 ]; then
+		if [ ! $( dpkg -l | grep -q dosfstools ) ]; then
 			echo "Error! You need to install dosfstools first!"
 			echo "Run apt-get install dosfstools"
 			return 1
@@ -489,14 +489,14 @@ vzvol_pkg_DEB() {
 }
 vzvol_pkg_Arch() {
 	if [ "${FSTYPE}" = "xfs" ]; then
-		if [ $( pacman -Q | grep -q xfsprogs ) = 1 ]; then
+		if [ ! $( pacman -Q | grep -q xfsprogs ) ]; then
 			echo "Error! You need to install xfsprogs first!"
 			echo "Run pacman -Sy xfsprogs"
 			return 1
 		fi
 	fi
 	if [ "${FSTYPE}" = "fat32" ]; then
-		if [ $( pacman -Q | grep -q dosfstools ) = 1 ]; then
+		if [ ! $( pacman -Q | grep -q dosfstools ) ]; then
 			echo "Error! You need to install dosfstools first!"
 			echo "Run pacman -Sy dosfstools"
 			return 1
@@ -505,14 +505,14 @@ vzvol_pkg_Arch() {
 }
 vzvol_pkg_RHEL() {
 	if [ "${FSTYPE}" = "xfs" ]; then
-		if [ $( rpm -qa | grep -q xfsprogs ) = 1 ]; then
+		if [ ! $( rpm -qa | grep -q xfsprogs ) ]; then
 			echo "Error! You need to install xfsprogs first!"
 			echo "Run yum install xfsprogs"
 			return 1
 		fi
 	fi
 	if [ "${FSTYPE}" = "fat32" ]; then
-		if [ $( rpm -qa | grep -q dosfstools ) = 1 ]; then
+		if [ ! $( rpm -qa | grep -q dosfstools ) ]; then
 			echo "Error! You need to install dosfstools first!"
 			echo "Run yum install dosfstools"
 			return 1
