@@ -310,6 +310,7 @@ vzvol_list_type() {
 			echo "${vols} RAW none $purevolused $purevolsize $zvolfstype"
 		fi
 	done
+	return 0
 }
 
 # File Creation and Deletion
