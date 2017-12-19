@@ -3,7 +3,7 @@
 set -e
 set -x
 
-ZROOT=$( zpool list | awk 'NR==3 {print $1}' )
+ZROOT=$(zpool list | awk 'NR==3 {print $1}')
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
@@ -19,10 +19,10 @@ else
 	VZVOL_SU_CMD="su - root -c"
 fi
 
-if [ "$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }' )" = bootpool ]; then
-	ZROOT=$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }' )
+if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
+	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
 else
-	ZROOT=$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }' )
+	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')
 fi
 
 show_help() {
