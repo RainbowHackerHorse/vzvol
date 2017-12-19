@@ -1,8 +1,5 @@
 #!/bin/sh
 
-set -e
-set -x
-
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
