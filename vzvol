@@ -265,6 +265,7 @@ getargz() {
 					else
 						FSTYPE="${2}"
 						FORMAT_ME="${3}"
+						VOLNAME="${FORMAT_ME}"
 						vzvol_fscheck
 						zvol_fs_type
 					fi
