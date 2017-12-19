@@ -8,12 +8,18 @@ errorfunc=MAIN
 IMPORTIMG=DIE
 VZVOL_PROGRESS_FLAG=NO
 
-
-if pkg info | grep -q sudo; then
-	VZVOL_SU_CMD="sudo"
-else
-	VZVOL_SU_CMD="su - root -c"
-fi
+case "$( uname -s )" in
+	FreeBSD)
+		if pkg info | grep -q sudo; then
+			VZVOL_SU_CMD="sudo"
+		else
+			VZVOL_SU_CMD="su - root -c"
+		fi
+	;;
+	Linux)
+		VZVOL_SU_CMD="sudo"
+	;;
+esac
 
 if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
