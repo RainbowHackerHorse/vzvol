@@ -437,11 +437,21 @@ vzvol_pkg_check_freebsd(){
 	fi
 }
 vzvol_pkg_check_linux(){
-	
+	case "$( lsb_release -i | awk '{print $3}' )" in
+		Ubuntu)
+			if [ "${FSTYPE}" = "xfs" ]; then
+				if [ $( dpkg -l | grep -q xfsprogs ) = 1 ]; then
+				echo "Error! You need to install xfsprogs first!"
+				echo "Run apt-get install xfsprogs"
+				return 1
+			fi
+		fi
+		;;
+	esac
 }
 zvol_fs_type() {
 	errorfunc='zvol_fs_type'
-	case "$(uname -s)" in
+	case "$( uname -s )" in
 		FreeBSD)
 			vzvol_pkg_check_freebsd
 		;;
@@ -522,7 +532,20 @@ zvol_create_fs_ufs() {
 zvol_create_fs_fat32() {
 	errorfunc='zvol_create_fs_fat32'
 	echo "Creating FAT32 Filesystem on /dev/zvol/${FORMAT_ME}"
-	newfs_msdos -F32 /dev/zvol/"${FORMAT_ME}" || return 1
+	case "$( uname -s )" in
+		FreeBSD)
+			zvol_create_fs_fat32_freebsd -F32 /dev/zvol/"${FORMAT_ME}" || return 1
+		;;
+		Linux)
+			zvol_create_fs_fat32_linux -F32 /dev/zvol/"${FORMAT_ME}" || return 1
+		;;
+	esac	
+}
+zvol_create_fs_fat32_freebsd() {
+	newfs_msdos "$@"
+}
+zvol_create_fs_fat32_linux() {
+	mkfs.fat "$@"
 }
 zvol_create_fs_ext2() {
 	errorfunc='zvol_create_fs_ext2'
