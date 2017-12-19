@@ -441,11 +441,18 @@ vzvol_pkg_check_linux(){
 		Ubuntu)
 			if [ "${FSTYPE}" = "xfs" ]; then
 				if [ $( dpkg -l | grep -q xfsprogs ) = 1 ]; then
-				echo "Error! You need to install xfsprogs first!"
-				echo "Run apt-get install xfsprogs"
-				return 1
+					echo "Error! You need to install xfsprogs first!"
+					echo "Run apt-get install xfsprogs"
+					return 1
+				fi
 			fi
-		fi
+			if [ "${FSTYPE}" = "fat32" ]; then
+				if [ $( dpkg -l | grep -q dosfstools ) = 1 ]; then
+					echo "Error! You need to install dosfstools first!"
+					echo "Run apt-get install dosfstools"
+					return 1
+				fi
+			fi
 		;;
 	esac
 }
