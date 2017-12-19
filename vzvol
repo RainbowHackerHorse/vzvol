@@ -300,7 +300,7 @@ vzvol_list_type() {
 		purevolused=$( zfs get referenced $vols | awk '!/VALUE/ {print $3}' )
 		purevolsize=$( zfs get used $vols | awk '!/VALUE/ {print $3}' )
 		if zfs get custom:fs $vols 2>/dev/null | grep -q fs; then
-			zvolfstype=$( zfs get custom:fs $vols | awk '!/FS/ {print $3}' )
+			zvolfstype=$( zfs get custom:fs $vols | awk '!/VALUE/ {print $3}' )
 		else
 			zvolfstype="unknown"
 		fi
