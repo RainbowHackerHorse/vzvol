@@ -6,7 +6,6 @@ set -x
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
-VOLMK=zfs create -V
 FSTYPE=DIE
 errorfunc=MAIN
 IMPORTIMG=DIE
@@ -323,9 +322,9 @@ zvol_create() {
 	errorfunc='zvol_create'
 	if [ ! -e /dev/zvol/"${ZROOT}/${VOLNAME}" ]; then
 		if [ "${ZUSER}" = root ]; then
-			"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
+			zfs create -V "${SIZE}" "${ZROOT}/${VOLNAME}"
 		else
-			"${VZVOL_SU_CMD}" "${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
+			"${VZVOL_SU_CMD}" zfs create -V "${SIZE}" "${ZROOT}/${VOLNAME}"
 		fi
 	fi
 	"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
