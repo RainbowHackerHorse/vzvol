@@ -279,9 +279,9 @@ getargz() {
 
 # Display Data
 vzvol_list() {
-	if [ $(vzvol_list_type) | grep -q no ]; then
+	if $(vzvol_list_type) | grep -q no; then
 		(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
-		; None | column -t
+		; None) | column -t
 	else
 		(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
 		; vzvol_list_type) | column -t
