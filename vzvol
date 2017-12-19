@@ -1,10 +1,11 @@
 #!/bin/sh
 
-ZROOT=$( zpool list | awk 'NR==3 {print $1}' )
+set -e
+set -x
+
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
-VOLMK=""$VZVOL_SU_CMD" zfs create -V"
 FSTYPE=DIE
 errorfunc=MAIN
 IMPORTIMG=DIE
@@ -16,10 +17,10 @@ else
 	VZVOL_SU_CMD="su - root -c"
 fi
 
-if [ "$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }' )" = bootpool ]; then
-	ZROOT=$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }' )
+if [ "$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')" = bootpool ]; then
+	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[2] }')
 else
-	ZROOT=$( zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }' )
+	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')
 fi
 
 show_help() {
@@ -122,7 +123,7 @@ show_help() {
 	List all zvols on your system, the type, any associated .VMDK files, how much space on disk
 	is used by the zvol, the maximum size of the zvol capacity, and the Filesystem, if
 	vzvol can determine it. Imported images will list FS as "imported", and any zvol that does not
-	have custom:FS set will report "unknown".
+	have custom:fs set will report "unknown".
 	Example output:
 	ZVOL              TYPE        VMDK                                      USED   SIZE  FS
 	zroot/smartos     RAW         none                                      20G	   50G   zfs
@@ -264,6 +265,7 @@ getargz() {
 					else
 						FSTYPE="${2}"
 						FORMAT_ME="${3}"
+						VOLNAME="${FORMAT_ME}"
 						vzvol_fscheck
 						zvol_fs_type
 					fi
@@ -278,17 +280,31 @@ getargz() {
 
 # Display Data
 vzvol_list() {
-	(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
-	; vzvol_list_type) | column -t
+	vzvol_list_type 2>&1 /dev/null
+	if [ $? = 2 ]; then
+		echo "Error, No zvols Configured"
+		exit 1
+	fi
+	vzvol_list_type 2>&1 /dev/null
+	if [ $? = 0 ]; then
+		(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
+		; vzvol_list_type) | column -t
+	else
+		echo "Error acquiring zvol list"
+		return 1
+	fi
 }
 vzvol_list_type() {
 	list_my_vols=$( zfs list -t volume | awk '!/NAME/ {print $1}' )
+	if [ "$list_my_vols" = "no" ]; then
+		return 2
+	fi
 	for vols in $list_my_vols; do
 		purevolname=$( echo $vols | awk -F "/" '{print $2}' )
 		purevolused=$( zfs get referenced $vols | awk '!/VALUE/ {print $3}' )
 		purevolsize=$( zfs get used $vols | awk '!/VALUE/ {print $3}' )
-		if zfs get custom:FS $vols 2>/dev/null | grep -q FS; then
-			zvolfstype=$( zfs get custom:FS $vols | awk '!/FS/ {print $3}' )
+		if zfs get custom:fs $vols 2>/dev/null | grep -q fs; then
+			zvolfstype=$( zfs get custom:fs $vols | awk '!/VALUE/ {print $3}' )
 		else
 			zvolfstype="unknown"
 		fi
@@ -298,6 +314,7 @@ vzvol_list_type() {
 			echo "${vols} RAW none $purevolused $purevolsize $zvolfstype"
 		fi
 	done
+	return 0
 }
 
 # File Creation and Deletion
@@ -318,13 +335,22 @@ vmdk_create() {
 	fi
 }
 zvol_create() {
-	errorfunc='vzol_create'
+	errorfunc='zvol_create'
 	if [ ! -e /dev/zvol/"${ZROOT}/${VOLNAME}" ]; then
-		"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
+		if [ "${ZUSER}" = root ]; then
+			zfs create -V "${SIZE}" "${ZROOT}/${VOLNAME}"
+		else
+			"${VZVOL_SU_CMD}" zfs create -V "${SIZE}" "${ZROOT}/${VOLNAME}"
+		fi
 	fi
-	"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
-	echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
-	zfs set custom:FS=none "${ZROOT}/${VOLNAME}"
+	if [ "${ZUSER}" = root ]; then
+		chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
+		echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | tee -a /etc/devfs.conf
+	else
+		"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
+		echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
+	fi
+	zfs set custom:fs=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
 	fi
@@ -358,7 +384,7 @@ vzvol_delete() {
 zvol_import_img() {
 	errorfunc='zvol_import_img'
 	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
-		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} | pv -petrb | of=/dev/zvol/${ZROOT}/${VOLNAME}"
+		VZVOL_IMPORT_CMD="( pv -n ${IMPORTIMG} | of=/dev/zvol/${ZROOT}/${VOLNAME} )2>&1 | dialog --gauge 'Importing...' 10 70 0"
 	else
 		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
 	fi
@@ -368,7 +394,7 @@ zvol_import_img() {
 	case "$line" in
 		y)
 			echo "Beginning import..."
-			zfs set custom:FS=imported "${ZROOT}/${VOLNAME}"
+			zfs set custom:fs=imported "${ZROOT}/${VOLNAME}"
 			"${VZVOL_IMPORT_CMD}"
 		;;
 		*)
@@ -399,12 +425,12 @@ zvol_fs_type() {
 		echo "Warning. You have selected an FS type supplied by a port. Now checking to see if the port is installed."
 		echo "Please note that unsupported FSes may exhibit unexpected behavior!"
 		if [ "${FSTYPE}" = "ext2" -o "${FSTYPE}" = "ext3" -o "${FSTYPE}" = "ext4" ]; then
-			if pkg info | grep -vq e2fsprogs; then
+			if [ $( pkg info | grep -q e2fsprogs ) = 1 ]; then
 				echo "Error! You need to install sysutils/e2fsprogs first!"
 				return 1
 			fi
 		elif [ "${FSTYPE}" = "xfs" ]; then
-			if pkg info | grep -vq xfsprogs; then
+			if [ $( pkg info | grep -q xfsprogs ) = 1 ]; then
 				echo "Error! You need to install sysutils/xfsprogs first!"
 				return 1
 			fi
@@ -422,7 +448,7 @@ zvol_fs_type() {
 			return 1
 		;;
 	esac
-	zfs set custom:FS="${FSTYPE}" "${FORMAT_ME}"
+	zfs set custom:fs="${FSTYPE}" "${FORMAT_ME}"
 	case "${FSTYPE}" in
 		zfs)
 			zvol_create_fs_zfs
@@ -459,13 +485,13 @@ zvol_type_select() {
 }
 zvol_type_virtualbox() {
 	errorfunc='zvol_type_virtualbox'
-	create_vzol || return 1
+	zvol_create || return 1
 	vmdk_create || return 1
 	echo "Please use /home/${ZUSER}/VBoxdisks/${VOLNAME}.vmdk as your VM Disk"
 }
 zvol_type_raw() {
 	errorfunc='zvol_type_raw'
-	create_vzol || return 1
+	zvol_create || return 1
 	echo "You can find your zvol at: /dev/zvol/${ZROOT}/${VOLNAME}"
 }
 
