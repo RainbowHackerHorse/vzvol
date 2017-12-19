@@ -6,7 +6,7 @@ set -x
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
-VOLMK="zfs create -V"
+VOLMK=zfs create -V
 FSTYPE=DIE
 errorfunc=MAIN
 IMPORTIMG=DIE
