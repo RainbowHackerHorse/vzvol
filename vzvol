@@ -279,8 +279,13 @@ getargz() {
 
 # Display Data
 vzvol_list() {
-	(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
-	; vzvol_list_type) | column -t
+	if [ $(vzvol_list_type) | grep -q no ]; then
+		(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
+		; None | column -t
+	else
+		(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
+		; vzvol_list_type) | column -t
+	fi
 }
 vzvol_list_type() {
 	list_my_vols=$( zfs list -t volume | awk '!/NAME/ {print $1}' )
