@@ -279,12 +279,11 @@ getargz() {
 
 # Display Data
 vzvol_list() {
-	vzvol_list_type 2>&1 /dev/null
+	vzvol_pre_list 2>&1 /dev/null
 	if [ $? = 2 ]; then
-		echo "Error, No zvols Configured"
 		exit 1
 	fi
-	vzvol_list_type 2>&1 /dev/null
+	vzvol_pre_list 2>&1 /dev/null
 	if [ $? = 0 ]; then
 		(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
 		; vzvol_list_type) | column -t
@@ -293,9 +292,18 @@ vzvol_list() {
 		return 1
 	fi
 }
+vzvol_pre_list(){
+	list_my_vols=$( zfs list -t volume | awk '!/NAME/ {print $1}' )
+	if [ "$list_my_vols" = "no" ]; then
+		return 2
+	else 
+		return 0
+	fi
+}
 vzvol_list_type() {
 	list_my_vols=$( zfs list -t volume | awk '!/NAME/ {print $1}' )
 	if [ "$list_my_vols" = "no" ]; then
+		echo "Error, No zvols Configured"
 		return 2
 	fi
 	for vols in $list_my_vols; do
