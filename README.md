@@ -73,11 +73,6 @@ first pool is "bootpool" (as with an encrypted system).
 If your first pool is "bootpool", this script will default to the second
 listed pool, usually "zroot" in a default install.
 
---sparse
-The sparse flag allows you to create a sparse zvol instead of a pre-allocated one.
-Be careful using this option! Disk space will not be pre-allocated prior to creating
-the zvol which can cause you to run out of room in your VM!
-
 -t | --type
 This option allows you to set the disk type behavior.
 The following types are accepted:
