@@ -123,7 +123,7 @@ show_help() {
 	List all zvols on your system, the type, any associated .VMDK files, how much space on disk
 	is used by the zvol, the maximum size of the zvol capacity, and the Filesystem, if
 	vzvol can determine it. Imported images will list FS as "imported", and any zvol that does not
-	have custom:FS set will report "unknown".
+	have custom:fs set will report "unknown".
 	Example output:
 	ZVOL              TYPE        VMDK                                      USED   SIZE  FS
 	zroot/smartos     RAW         none                                      20G	   50G   zfs
@@ -288,8 +288,8 @@ vzvol_list_type() {
 		purevolname=$( echo $vols | awk -F "/" '{print $2}' )
 		purevolused=$( zfs get referenced $vols | awk '!/VALUE/ {print $3}' )
 		purevolsize=$( zfs get used $vols | awk '!/VALUE/ {print $3}' )
-		if zfs get custom:FS $vols 2>/dev/null | grep -q FS; then
-			zvolfstype=$( zfs get custom:FS $vols | awk '!/FS/ {print $3}' )
+		if zfs get custom:fs $vols 2>/dev/null | grep -q FS; then
+			zvolfstype=$( zfs get custom:fs $vols | awk '!/FS/ {print $3}' )
 		else
 			zvolfstype="unknown"
 		fi
@@ -334,7 +334,7 @@ zvol_create() {
 		"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
 		echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
 	fi
-	zfs set custom:FS=none "${ZROOT}/${VOLNAME}"
+	zfs set custom:fs=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
 	fi
@@ -378,7 +378,7 @@ zvol_import_img() {
 	case "$line" in
 		y)
 			echo "Beginning import..."
-			zfs set custom:FS=imported "${ZROOT}/${VOLNAME}"
+			zfs set custom:fs=imported "${ZROOT}/${VOLNAME}"
 			"${VZVOL_IMPORT_CMD}"
 		;;
 		*)
@@ -432,7 +432,7 @@ zvol_fs_type() {
 			return 1
 		;;
 	esac
-	zfs set custom:FS="${FSTYPE}" "${FORMAT_ME}"
+	zfs set custom:fs="${FSTYPE}" "${FORMAT_ME}"
 	case "${FSTYPE}" in
 		zfs)
 			zvol_create_fs_zfs
