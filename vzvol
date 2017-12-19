@@ -4,7 +4,7 @@ ZROOT=$( zpool list | awk 'NR==3 {print $1}' )
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
-VOLMK=""$VZVOL_SU_CMD" zfs create -V"
+VOLMK="$VZVOL_SU_CMD zfs create -V"
 FSTYPE=DIE
 errorfunc=MAIN
 IMPORTIMG=DIE
