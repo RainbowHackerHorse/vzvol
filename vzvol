@@ -11,6 +11,7 @@ errorfunc=MAIN
 IMPORTIMG=DIE
 VZVOL_PROGRESS_FLAG=NO
 
+
 if pkg info | grep -q sudo; then
 	VZVOL_SU_CMD="sudo"
 else
@@ -200,7 +201,7 @@ getargz() {
 				fi
 			;;
 			--sparse)
-				VOLMK=""$VZVOL_SU_CMD" zfs create -s -V"
+				VOLMK="${ZCMD} create -s -V"
 				shift
 			;;
 			--file-system)
@@ -350,7 +351,7 @@ zvol_create() {
 		"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
 		echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
 	fi
-	zfs set custom:fs=none "${ZROOT}/${VOLNAME}"
+	"$VZVOL_SU_CMD" zfs set custom:fs=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
 	fi
@@ -368,7 +369,7 @@ vzvol_delete() {
 	case "$line" in
 		y)
 			echo "Deleting ${DELETE_ME}"
-			zfs destroy "${DELETE_ME}"
+			"$VZVOL_SU_CMD" zfs destroy "${DELETE_ME}"
 			if [ -f "${DELETE_VMDK}" ]; then
 				rm -f "${DELETE_VMDK}"
 			fi
@@ -394,7 +395,7 @@ zvol_import_img() {
 	case "$line" in
 		y)
 			echo "Beginning import..."
-			zfs set custom:fs=imported "${ZROOT}/${VOLNAME}"
+			"$VZVOL_SU_CMD" zfs set custom:fs=imported "${ZROOT}/${VOLNAME}"
 			"${VZVOL_IMPORT_CMD}"
 		;;
 		*)
@@ -540,7 +541,7 @@ zvol_fs_type() {
 			return 1
 		;;
 	esac
-	zfs set custom:fs="${FSTYPE}" "${FORMAT_ME}"
+	"$VZVOL_SU_CMD" zfs set custom:fs="${FSTYPE}" "${FORMAT_ME}"
 	case "${FSTYPE}" in
 		zfs)
 			zvol_create_fs_zfs
