@@ -325,7 +325,7 @@ zvol_create() {
 		if [ "${ZUSER}" = root ]; then
 			"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
 		else
-			"${ZVOL_SU_CMD}" "${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
+			"${VZVOL_SU_CMD}" "${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
 		fi
 	fi
 	"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
