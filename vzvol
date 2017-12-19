@@ -282,7 +282,10 @@ vzvol_list() {
 	vzvol_list_type 2>&1 /dev/null
 	if [ $? = 2 ]; then
 		echo "Error, No zvols Configured"
-	elif [ $? = 0 ]; then
+		exit 1
+	fi
+	vzvol_list_type 2>&1 /dev/null
+	if [ $? = 0 ]; then
 		(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
 		; vzvol_list_type) | column -t
 	else
