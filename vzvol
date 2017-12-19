@@ -6,7 +6,7 @@ set -x
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
-VOLMK="$VZVOL_SU_CMD" zfs create -V
+VOLMK="zfs create -V"
 FSTYPE=DIE
 errorfunc=MAIN
 IMPORTIMG=DIE
@@ -322,7 +322,11 @@ vmdk_create() {
 zvol_create() {
 	errorfunc='zvol_create'
 	if [ ! -e /dev/zvol/"${ZROOT}/${VOLNAME}" ]; then
-		"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
+		if [ "${ZUSER}" = root ]; then
+			"${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
+		else
+			"${ZVOL_SU_CMD}" "${VOLMK}" "${SIZE}" "${ZROOT}/${VOLNAME}"
+		fi
 	fi
 	"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
 	echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
