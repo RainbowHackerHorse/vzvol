@@ -3,7 +3,6 @@
 set -e
 set -x
 
-ZROOT=$(zpool list | awk 'NR==3 {print $1}')
 ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
