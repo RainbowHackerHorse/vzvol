@@ -327,8 +327,13 @@ zvol_create() {
 			"${VZVOL_SU_CMD}" zfs create -V "${SIZE}" "${ZROOT}/${VOLNAME}"
 		fi
 	fi
-	"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
-	echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
+	if [ "${ZUSER}" = root ]; then
+		chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
+		echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | tee -a /etc/devfs.conf
+	else
+		"$VZVOL_SU_CMD" chown "${ZUSER}" /dev/zvol/"${ZROOT}/${VOLNAME}"
+		echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | "$VZVOL_SU_CMD" tee -a /etc/devfs.conf
+	fi
 	zfs set custom:FS=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
 		zvol_fs_type || return 1
