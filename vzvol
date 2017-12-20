@@ -293,7 +293,7 @@ vzvol_list() {
 	fi
 }
 vzvol_pre_list(){
-	zfs list -t volume
+	zfs list -t volume > /dev/null 2>&1
 	if [ ! $? = 0 ]; then
 		return 2
 	else 
