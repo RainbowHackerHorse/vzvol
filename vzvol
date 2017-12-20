@@ -403,6 +403,7 @@ zvol_import_img() {
 				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
 			;;
 			Linux)
+				echo whoami
 				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME} status=progress"
 			;;
 		esac
