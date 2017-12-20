@@ -417,7 +417,7 @@ zvol_import_img() {
 		y)
 			echo "Beginning import..."
 			"$VZVOL_SU_CMD" zfs set custom:fs=imported "${ZROOT}/${VOLNAME}"
-			"${VZVOL_IMPORT_CMD}"
+			"$VZVOL_IMPORT_CMD"
 		;;
 		*)
 			echo "Import cancelled!"
