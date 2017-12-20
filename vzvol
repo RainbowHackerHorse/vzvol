@@ -105,6 +105,7 @@ such as https://github.com/RainbowHackerHorse/FreeBSD-On-Linode
 -p
 The -p flag is used with --import to show a progress bar for image data 
 importation to the vzol. -p requires that sysutils/pv be installed.
+On Linux, this option requires you to have dialog installed.
 
 zvol Management Flags:
 
@@ -397,7 +398,14 @@ zvol_import_img() {
 	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
 		VZVOL_IMPORT_CMD="( pv -n ${IMPORTIMG} | of=/dev/zvol/${ZROOT}/${VOLNAME} )2>&1 | dialog --gauge 'Importing...' 10 70 0"
 	else
-		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
+		case "$( uname -s )" in
+			FreeBSD)
+				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
+			;;
+			Linux)
+				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME} status=progress"
+			;;
+		esac
 	fi
 	echo "Now importing ${IMPORTIMG} to /dev/zvol/${ZROOT}/${VOLNAME}"
 	echo "This will DESTROY all data on /dev/zvol/${ZROOT}/${VOLNAME}"
