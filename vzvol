@@ -448,7 +448,8 @@ vzvol_pkg_check_freebsd(){
 	fi
 }
 vzvol_pkg_check_linux(){
-	if "$( ls /usr/bin | grep -q lsb_release )"; then
+	( ls /usr/bin | grep -q lsb_release )
+	if [ $? = 0 ]; then
 		vzvol_pkg_lsb
 	else
 		vzvol_pkg_distrocheck
