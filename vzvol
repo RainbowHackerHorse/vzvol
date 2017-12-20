@@ -397,26 +397,31 @@ vzvol_delete() {
 # Data Management
 zvol_import_img() {
 	errorfunc='zvol_import_img'
+	ZVOL_IMPORT=/dev/zvol/"${ZROOT}/${VOLNAME}"
+	echo "Testing to ensure zvol was created"
+	if [ ! -f "${ZVOL_IMPORT}" ]; then
+		if [ -L "${ZVOL_IMPORT}" ]; then
+			ZVOL_IMPORT=/dev/$( file "${ZVOL_IMPORT}" | awk -F "/" '{print $7}' )
+		else
+			echo "Error. ${ZVOL_IMPORT} not found"
+			return 1
+		fi
+	fi
 	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
-		VZVOL_IMPORT_CMD="( pv -n ${IMPORTIMG} | of=/dev/zvol/${ZROOT}/${VOLNAME} )2>&1 | dialog --gauge 'Importing...' 10 70 0"
+		VZVOL_IMPORT_CMD="( pv -n ${IMPORTIMG} | of=${ZVOL_IMPORT} )2>&1 | dialog --gauge 'Importing...' 10 70 0"
 	else
 		case "$( uname -s )" in
 			FreeBSD)
-				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME}"
+				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=${ZVOL_IMPORT}"
 			;;
 			Linux)
 				echo $(whoami)
-				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=/dev/zvol/${ZROOT}/${VOLNAME} status=progress"
+				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=${ZVOL_IMPORT} status=progress"
 			;;
 		esac
 	fi
-	echo "Testing to ensure zvol was created"
-	if [ ! -f "/dev/zvol/${ZROOT}/${VOLNAME}" ]; then
-		echo "Error. /dev/zvol/${ZROOT}/${VOLNAME} not found"
-		return 1
-	fi
-	echo "Now importing ${IMPORTIMG} to /dev/zvol/${ZROOT}/${VOLNAME}"
-	echo "This will DESTROY all data on /dev/zvol/${ZROOT}/${VOLNAME}"
+	echo "Now importing ${IMPORTIMG} to ${ZVOL_IMPORT}"
+	echo "This will DESTROY all data on ${ZVOL_IMPORT}"
 	read -p "Do you want to continue? [y/N]?" line </dev/tty
 	case "$line" in
 		y)
