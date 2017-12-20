@@ -415,7 +415,6 @@ zvol_import_img() {
 				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=${ZVOL_IMPORT}"
 			;;
 			Linux)
-				echo $(whoami)
 				VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=${ZVOL_IMPORT} status=progress"
 			;;
 		esac
