@@ -9,6 +9,7 @@ FSTYPE=DIE
 errorfunc=MAIN
 IMPORTIMG=DIE
 VZVOL_PROGRESS_FLAG=NO
+NO_CREATE=NO
 
 case "$( uname -s )" in
 	FreeBSD)
@@ -441,7 +442,11 @@ zvol_check() {
 	if [ "${VOLNAME}" = 'DIE' ]; then
 		echo "Please provide a zvol name. See --help for more information."
 		return 1
-	fi 
+	fi
+	(zfs list -t volume 2>&1 >/dev/null | grep -q "${ZROOT}/${VOLNAME}")
+	if [ $? = 0 ]; then
+		"$NO_CREATE" = "YES"
+	fi
 }
 
 vzvol_fscheck() {
@@ -679,5 +684,11 @@ zvol_create_fs_xfs() {
 
 getargz "$@" || error_code
 zvol_check || error_code
-zvol_type_select || error_code
+if [ "$NO_CREATE" = "YES" ]; then 
+	if [ ! "${IMPORTIMG}" = DIE ]; then
+		zvol_import_img || return 1
+	fi
+else
+	zvol_type_select || error_code
+fi
 exit 0
