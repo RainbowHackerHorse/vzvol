@@ -293,7 +293,7 @@ vzvol_list() {
 	fi
 }
 vzvol_pre_list(){
-	if zfs list -t volume | grep -q no; then
+	if [ ! $( zfs list -t volume | grep -q no ) ]; then
 		return 2
 	else 
 		return 0
