@@ -279,14 +279,14 @@ getargz() {
 
 # Display Data
 vzvol_list() {
-	vzvol_pre_list > /dev/null 2>&1
+	vzvol_pre_list
 	if [ $? = 2 ]; then
 		echo "Error: no zvols configured"
 		echo "Why not try creating one?"
 		echo "It's as easy as: vzvol -t raw -v volumename"
 		exit 1
 	fi
-	vzvol_pre_list > /dev/null 2>&1
+	vzvol_pre_list
 	if [ $? = 0 ]; then
 		(printf "ZVOL TYPE VMDK USED SIZE FS \n" \
 		; vzvol_list_type) | column -t
