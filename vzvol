@@ -293,7 +293,8 @@ vzvol_list() {
 	fi
 }
 vzvol_pre_list(){
-	if [ ! $( zfs list -t volume | grep -q "no datasets available" ) ]; then
+	zfs list -t volume
+	if [ ! $? = 0 ]; then
 		return 2
 	else 
 		return 0
