@@ -293,8 +293,7 @@ vzvol_list() {
 	fi
 }
 vzvol_pre_list(){
-	list_my_vols=$( zfs list -t volume | awk '!/NAME/ {print $1}' )
-	if [ "$list_my_vols" = "no" ]; then
+	if zfs list -t volume | grep -q no; then
 		return 2
 	else 
 		return 0
