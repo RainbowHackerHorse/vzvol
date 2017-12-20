@@ -410,6 +410,11 @@ zvol_import_img() {
 			;;
 		esac
 	fi
+	echo "Testing to ensure zvol was created"
+	if [ ! -f "/dev/zvol/${ZROOT}/${VOLNAME}" ]; then
+		echo "Error. /dev/zvol/${ZROOT}/${VOLNAME} not found"
+		return 1
+	fi
 	echo "Now importing ${IMPORTIMG} to /dev/zvol/${ZROOT}/${VOLNAME}"
 	echo "This will DESTROY all data on /dev/zvol/${ZROOT}/${VOLNAME}"
 	read -p "Do you want to continue? [y/N]?" line </dev/tty
