@@ -455,7 +455,7 @@ zvol_check() {
 	fi
 	(zfs list -t volume 2>&1 >/dev/null | grep -q "${ZROOT}/${VOLNAME}")
 	if [ $? = 0 ]; then
-		"$NO_CREATE" = "YES"
+		NO_CREATE=YES
 	fi
 }
 
