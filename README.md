@@ -16,9 +16,15 @@ This allows you to use the zvol to back a disk for VirtualBox, bhyve, or other v
 ## Dependencies
 `vzvol` is written to be a 0-dependency program for its main functionality.
 However, to enable the use of certain functions, some additional packages are required:
+### FreeBSD
 - The -p flag requires the installation of sysutils/pv. This port is not needed if you don't use -p
 - XFS filesystem support requires the installation of sysutils/xfsprogs
 - ext2, ext3, and ext4 require the installation of sysutils/e2fsprogs
+### Linux
+- `dialog`
+- dosfstools
+- xfsprogs
+- pv
 
 ## Will this ever be in the FreeBSD Ports Tree?
 I have no idea. Do you find it useful? I'd love to get it in ports, but
