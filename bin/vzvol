@@ -14,13 +14,19 @@ if [ -d ../lib ]; then
 else 
 	vzvol_libdir=/usr/local/lib/vzvol/lib
 fi
-. "${vzvol_libdir}"/shared/*
+for vzvol_functions_list_shared in "${vzvol_libdir}"/shared/*; do 
+	. "$vzvol_functions_list_shared" 
+done
 case "$( uname -s )" in
 	FreeBSD)
-		. "${vzvol_libdir}"/freebsd/*
+		for vzvol_functions_list_freebsd in "${vzvol_libdir}"/freebsd/*; do 
+			. "$vzvol_functions_list_freebsd" 
+		done
 	;;
 	Linux)
-		. "${vzvol_libdir}"/linux/*
+		for vzvol_functions_list_linux in "${vzvol_libdir}"/linux/*; do 
+			. "$vzvol_functions_list_linux" 
+		done
 	;;
 esac
 
