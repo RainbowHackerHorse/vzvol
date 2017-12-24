@@ -1,5 +1,5 @@
 #!/bin/sh
-show_help() {
+vzvol_showhelp() {
 	errorfunc='show_help'
 	cat << 'EOT'
 	
