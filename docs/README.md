@@ -30,7 +30,7 @@ However, to enable the use of certain functions, some additional packages are re
 I have no idea. Do you find it useful? I'd love to get it in ports, but
 only if people actually find this useful. :)
 I'm currently working on a port, and you can see progress and help me fix mistakes in my Makefile at:
-https://github.com/RainbowHackerHorse/port-vzvol
+https://github.com/RainbowHackerHorse/ports-vzvol
 
 ## Contributing
 Fork and open a PR with your changes.
