@@ -9,16 +9,24 @@ IMPORTIMG=DIE
 VZVOL_PROGRESS_FLAG=NO
 NO_CREATE=NO
 
+if [ -d ../lib ]; then
+	vzvol_libdir=../lib
+else 
+	vzvol_libdir=/usr/local/lib/vzvol/lib
+fi
+for vzvol_functions_list_shared in "${vzvol_libdir}"/shared/*; do 
+	. "$vzvol_functions_list_shared" 
+done
 case "$( uname -s )" in
 	FreeBSD)
-		if pkg info | grep -q sudo; then
-			VZVOL_SU_CMD="sudo"
-		else
-			VZVOL_SU_CMD="su - root -c"
-		fi
+		for vzvol_functions_list_freebsd in "${vzvol_libdir}"/freebsd/*; do 
+			. "$vzvol_functions_list_freebsd" 
+		done
 	;;
 	Linux)
-		VZVOL_SU_CMD="sudo"
+		for vzvol_functions_list_linux in "${vzvol_libdir}"/linux/*; do 
+			. "$vzvol_functions_list_linux" 
+		done
 	;;
 esac
 
@@ -28,13 +36,14 @@ else
 	ZROOT=$(zpool list | awk '{ zPools[NR-1]=$1 } END { print zPools[1] }')
 fi
 
-getargz "$@" || error_code
-zvol_check || error_code
+vzvol_getargz "$@" || vzvol_errorcode
+zvol_check || vzvol_errorcode
+
 if [ "$NO_CREATE" = "YES" ]; then 
 	if [ ! "${IMPORTIMG}" = DIE ]; then
-		zvol_import_img || return 1
+		vzvol_import_img || return 1
 	fi
 else
-	zvol_type_select || error_code
+	zvol_type_select || vzvol_errorcode
 fi
 exit 0
