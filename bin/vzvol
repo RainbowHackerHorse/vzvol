@@ -358,7 +358,7 @@ zvol_create() {
 	fi
 	ZVOL_NAME=/dev/zvol/"${ZROOT}/${VOLNAME}"
 	echo "Testing to ensure zvol was created"
-	if [ ! -f "${ZVOL_NAME}" ]; then
+	if [ ! -c "${ZVOL_NAME}" ]; then
 		if [ -L "${ZVOL_NAME}" ]; then
 			ZVOL_NAME=/dev/$( file "${ZVOL_NAME}" | awk -F "/" '{print $7}' )
 		else
