@@ -38,6 +38,7 @@ fi
 
 vzvol_getargz "$@" || vzvol_errorcode
 zvol_check || vzvol_errorcode
+
 if [ "$NO_CREATE" = "YES" ]; then 
 	if [ ! "${IMPORTIMG}" = DIE ]; then
 		vzvol_import_img || return 1
