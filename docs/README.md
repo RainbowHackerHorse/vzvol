@@ -27,10 +27,13 @@ However, to enable the use of certain functions, some additional packages are re
 - pv
 
 ## Will this ever be in the FreeBSD Ports Tree?
-I have no idea. Do you find it useful? I'd love to get it in ports, but
-only if people actually find this useful. :)
-I'm currently working on a port, and you can see progress and help me fix mistakes in my Makefile at:
+I'm currently working on a port, and you can find it at:
 https://github.com/RainbowHackerHorse/ports-vzvol
+
+### UPDATE ###
+I've submitted to the ports tree!!!111!
+https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=224662
+I'll update this space if they accept it.
 
 ## Contributing
 Fork and open a PR with your changes.
