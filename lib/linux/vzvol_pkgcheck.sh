@@ -1,7 +1,6 @@
 #!/bin/sh
 vzvol_pkg_check_linux(){
-	ls /usr/bin | grep -q lsb_release
-	if [ $? = 0 ]; then
+	if [ -e /usr/bin/lsb_release ]; then
 		vzvol_pkg_lsb
 	else
 		vzvol_pkg_distrocheck
