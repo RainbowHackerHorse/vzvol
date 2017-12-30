@@ -5,7 +5,7 @@ vzvol_delete() {
 	echo "This will DESTROY ${DELETE_ME}"
 	echo "Unless you have a snapshot of this zvol,"
 	echo "ALL DATA WILL BE DELETED AND UNRECOVERABLE!"
-	read -p "Do you want to continue? [y/N]?" line </dev/tty
+	read -r -p "Do you want to continue? [y/N]?" line </dev/tty
 	case "$line" in
 		y)
 			echo "Deleting ${DELETE_ME}"

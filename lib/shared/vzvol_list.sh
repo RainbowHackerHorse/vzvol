@@ -31,11 +31,11 @@ vzvol_list_type() {
 		return 2
 	fi
 	for vols in $list_my_vols; do
-		purevolname=$( echo $vols | awk -F "/" '{print $2}' )
-		purevolused=$( zfs get referenced $vols | awk '!/VALUE/ {print $3}' )
-		purevolsize=$( zfs get used $vols | awk '!/VALUE/ {print $3}' )
-		if zfs get custom:fs $vols 2>/dev/null | grep -q fs; then
-			zvolfstype=$( zfs get custom:fs $vols | awk '!/VALUE/ {print $3}' )
+		purevolname=$( echo "$vols" | awk -F "/" '{print $2}' )
+		purevolused=$( zfs get referenced "$vols" | awk '!/VALUE/ {print $3}' )
+		purevolsize=$( zfs get used "$vols" | awk '!/VALUE/ {print $3}' )
+		if zfs get custom:fs "$vols" 2>/dev/null | grep -q fs; then
+			zvolfstype=$( zfs get custom:fs "$vols" | awk '!/VALUE/ {print $3}' )
 		else
 			zvolfstype="unknown"
 		fi

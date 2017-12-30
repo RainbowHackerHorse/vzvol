@@ -3,7 +3,7 @@ zvol_fs_type() {
 	errorfunc='zvol_fs_type'	
 	echo "Now formatting /dev/zvol/${FORMAT_ME} as ${FSTYPE}"
 	echo "This will DESTROY all data on /dev/zvol/${FORMAT_ME}"
-	read -p "Do you want to continue? [y/N]?" line </dev/tty
+	read -r -p "Do you want to continue? [y/N]?" line </dev/tty
 	case "$line" in
 		y)
 			echo "Beginning format..."

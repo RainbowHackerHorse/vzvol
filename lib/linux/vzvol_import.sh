@@ -18,7 +18,7 @@ vzvol_import_img() {
 	fi
 	echo "Now importing ${IMPORTIMG} to ${ZVOL_IMPORT}"
 	echo "This will DESTROY all data on ${ZVOL_IMPORT}"
-	read -p "Do you want to continue? [y/N]?" line </dev/tty
+	read -r -p "Do you want to continue? [y/N]?" line </dev/tty
 	case "$line" in
 		y)
 			echo "Beginning import..."
