@@ -86,7 +86,7 @@ vzvol_getargz() {
 				shift
 			;;
 			-p)
-				if pkg info | grep -vq pv; then
+				if pkg -N info | grep -vq pv; then
 					echo "Error! You need to install sysutils/pv first, or don't use -p"
 					return 1
 				fi
