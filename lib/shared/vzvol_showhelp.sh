@@ -3,7 +3,7 @@ vzvol_showhelp() {
 	errorfunc='show_help'
 	cat << 'EOT'
 	
-virtbox-zvol is a shell script designed to help automate the process of 
+vzvol is a shell script designed to help automate the process of 
 creating a ZFS zvol for use as a storage unit for virtualization, or testing.
 vzvol was originally created to allow you to back a light .VMDK with a zvol for 
 use with VirtualBox, however additional functionality has been added over time 

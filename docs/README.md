@@ -16,10 +16,15 @@ This allows you to use the zvol to back a disk for VirtualBox, bhyve, or other v
 ## Dependencies
 `vzvol` is written to be a 0-dependency program for its main functionality.
 However, to enable the use of certain functions, some additional packages are required:
+
 ### FreeBSD
 - The -p flag requires the installation of sysutils/pv. This port is not needed if you don't use -p
 - XFS filesystem support requires the installation of sysutils/xfsprogs
 - ext2, ext3, and ext4 require the installation of sysutils/e2fsprogs
+
+By default, on FreeBSD, these options are enabled. They can be disabled if installing
+fron ports (once it's accepted).
+
 ### Linux
 - `dialog`
 - dosfstools
@@ -43,7 +48,7 @@ to the bottom if it isn't already listed!
 ## Help
 
 ```
-virtbox-zvol is a shell script designed to help automate the process of 
+vzvol is a shell script designed to help automate the process of 
 creating a ZFS zvol for use as a storage unit for virtualization, or testing.
 vzvol was originally created to allow you to back a light .VMDK with a zvol for 
 use with VirtualBox, however additional functionality has been added over time to
