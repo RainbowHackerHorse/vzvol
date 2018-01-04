@@ -32,13 +32,9 @@ fron ports (once it's accepted).
 - pv
 
 ## Will this ever be in the FreeBSD Ports Tree?
-I'm currently working on a port, and you can find it at:
-https://github.com/RainbowHackerHorse/ports-vzvol
+WE'RE IN THE PORTS TREE!
 
-### UPDATE ###
-I've submitted to the ports tree!!!111!
-https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=224662
-I'll update this space if they accept it.
+`cd /usr/ports/sysutils/vzvol && make install clean`
 
 ## Contributing
 Fork and open a PR with your changes.
