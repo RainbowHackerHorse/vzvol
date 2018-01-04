@@ -41,6 +41,11 @@ Fork and open a PR with your changes.
 If you've contributed, please ensure you edit CONTRIBUTORS and add your GitHub username
 to the bottom if it isn't already listed!
 
+## Package Status
+vzvol is currently supported in the following OS pkg systems:
+- FreeBSD Ports - `cd /usr/ports/sysutils/vzvol && make install clean`
+
+
 ## Help
 
 ```
