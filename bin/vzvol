@@ -8,6 +8,7 @@ errorfunc=MAIN
 IMPORTIMG=DIE
 VZVOL_PROGRESS_FLAG=NO
 NO_CREATE=NO
+VOLTYPE=NULL
 vzvol_libdir=/usr/local/lib/vzvol/lib
 vzvol_gitdir=$( find ./ -name "vzvol" | grep bin | sed 's/.\{10\}$//' )
 
