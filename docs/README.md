@@ -21,6 +21,7 @@ However, to enable the use of certain functions, some additional packages are re
 - The -p flag requires the installation of sysutils/pv. This port is not needed if you don't use -p
 - XFS filesystem support requires the installation of sysutils/xfsprogs
 - ext2, ext3, and ext4 require the installation of sysutils/e2fsprogs
+- vzvol now relies on sudo internally on FreeBSD. Eventually, setting zvol permissions process will be altered and this removed.
 
 By default, on FreeBSD, these options are enabled. They can be disabled if installing
 fron ports (once it's accepted).
