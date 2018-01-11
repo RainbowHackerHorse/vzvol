@@ -8,12 +8,15 @@ errorfunc=MAIN
 IMPORTIMG=DIE
 VZVOL_PROGRESS_FLAG=NO
 NO_CREATE=NO
+vzvol_libdir=/usr/local/lib/vzvol/lib
+vzvol_gitdir=$( find ./ -name "vzvol" | grep bin | sed 's/.\{10\}$//' )
 
-if [ -d ../lib ]; then
+if [ -f ./vzvol ]; then
 	vzvol_libdir=../lib
-else 
-	vzvol_libdir=/usr/local/lib/vzvol/lib
+elif [ -d "$vzvol_gitdir" ]; then
+	vzvol_libdir="$vzvol_gitdir/lib"
 fi
+
 for vzvol_functions_list_shared in "${vzvol_libdir}"/shared/*; do 
 	. "$vzvol_functions_list_shared" 
 done
