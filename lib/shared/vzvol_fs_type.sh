@@ -13,7 +13,7 @@ zvol_fs_type() {
 			return 1
 		;;
 	esac
-	"$VZVOL_SU_CMD" zfs set custom:fs="${FSTYPE}" "${FORMAT_ME}"
+	zfs set custom:fs="${FSTYPE}" "${FORMAT_ME}"
 	case "${FSTYPE}" in
 		zfs)
 			zvol_create_fs_zfs

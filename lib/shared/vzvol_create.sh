@@ -2,11 +2,7 @@
 zvol_create() {
 	errorfunc='zvol_create'
 	if [ ! -e /dev/zvol/"${ZROOT}/${VOLNAME}" ]; then
-		if [ "${ZUSER}" = root ]; then
-			zfs create -V "${SIZE}" "${ZROOT}/${VOLNAME}"
-		else
-			"${VZVOL_SU_CMD}" zfs create -V "${SIZE}" "${ZROOT}/${VOLNAME}"
-		fi
+		zfs create -V "${SIZE}" "${ZROOT}/${VOLNAME}"
 	fi
 	ZVOL_NAME=/dev/zvol/"${ZROOT}/${VOLNAME}"
 	sleep 5
