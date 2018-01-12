@@ -26,8 +26,9 @@ Example: --size 10G | -s 1024M
 Defaults to 10G if nothing specified.
 
 -u | --user
+MANDATORY OPTION!!
 Sets the user under which we grant permissions for the zvol.
-Defaults to your username if nothing is specified.
+No longer defaults to your username, and is a mandatory option.
 
 -v | --volume
 MANDATORY OPTION!!
