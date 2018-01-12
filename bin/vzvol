@@ -1,6 +1,5 @@
 #!/bin/sh
 
-ZUSER=$( whoami )
 SIZE=10G
 VOLNAME=DIE
 FSTYPE=DIE
@@ -11,6 +10,12 @@ NO_CREATE=NO
 VOLTYPE=NULL
 vzvol_libdir=/usr/local/lib/vzvol/lib
 vzvol_gitdir=$( find ./ -name "vzvol" | grep bin | sed 's/.\{10\}$//' )
+
+
+if [ ! "$(whoami)" = 'root' ]; then
+	echo "Error. Please run vzvol as root or with sudo, and specify the user to set permissions for with -u or --user"
+	exit 1
+fi
 
 if [ -f ./vzvol ]; then
 	vzvol_libdir=../lib
