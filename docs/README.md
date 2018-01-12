@@ -21,7 +21,7 @@ However, to enable the use of certain functions, some additional packages are re
 - The -p flag requires the installation of sysutils/pv. This port is not needed if you don't use -p
 - XFS filesystem support requires the installation of sysutils/xfsprogs
 - ext2, ext3, and ext4 require the installation of sysutils/e2fsprogs
-- vzvol now relies on sudo internally on FreeBSD. Eventually, setting zvol permissions process will be altered and this removed.
+- vzvol no longer requires sudo, however now, it must either be run as root, or with sudo.
 
 By default, on FreeBSD, these options are enabled. They can be disabled if installing
 fron ports (once it's accepted).
@@ -73,8 +73,9 @@ Example: --size 10G | -s 1024M
 Defaults to 10G if nothing specified.
 
 -u | --user
+MANDATORY OPTION!!
 Sets the user under which we grant permissions for the zvol.
-Defaults to your username if nothing is specified.
+No longer defaults to your username, and is a mandatory option.
 
 -v | --volume
 MANDATORY OPTION!!

@@ -9,7 +9,7 @@ vzvol_delete() {
 	case "$line" in
 		y)
 			echo "Deleting ${DELETE_ME}"
-			"$VZVOL_SU_CMD" zfs destroy "${DELETE_ME}"
+			zfs destroy "${DELETE_ME}"
 			if [ -f "${DELETE_VMDK}" ]; then
 				rm -f "${DELETE_VMDK}"
 			fi

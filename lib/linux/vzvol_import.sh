@@ -22,7 +22,7 @@ vzvol_import_img() {
 	case "$line" in
 		y)
 			echo "Beginning import..."
-			"$VZVOL_SU_CMD" zfs set custom:fs=imported "${ZROOT}/${VOLNAME}"
+			zfs set custom:fs=imported "${ZROOT}/${VOLNAME}"
 			eval "$VZVOL_IMPORT_CMD"
 		;;
 		*)
