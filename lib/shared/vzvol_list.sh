@@ -39,8 +39,8 @@ vzvol_list_type() {
 		else
 			zvolfstype="unknown"
 		fi
-		if [ -f "${HOME}/VBoxdisks/${purevolname}.vmdk" ]; then
-			echo "${vols} VirtualBox ${HOME}/VBoxdisks/${purevolname}.vmdk $purevolused $purevolsize $zvolfstype"
+		if [ -f "${ZUSERHOME}/VBoxdisks/${purevolname}.vmdk" ]; then
+			echo "${vols} VirtualBox ${ZUSERHOME}/VBoxdisks/${purevolname}.vmdk $purevolused $purevolsize $zvolfstype"
 		else
 			echo "${vols} RAW none $purevolused $purevolsize $zvolfstype"
 		fi

@@ -101,7 +101,7 @@ vzvol_getargz() {
 					return 1
 				else
 					DELETE_ME="${2}"
-					DELETE_VMDK="${HOME}/VBoxDisks/${2}.vmdk"
+					DELETE_VMDK="${ZUSERHOME}/VBoxDisks/${2}.vmdk"
 					vzvol_delete || exit 1
 					exit
 				fi

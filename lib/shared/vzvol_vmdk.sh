@@ -1,6 +1,5 @@
 #!/bin/sh
 vmdk_create() {
-	ZUSERHOME=$( awk -F ":" '/${ZUSER}/{print $6}' < /etc/passwd )
 	errorfunc='vmdk_create'
 	if [ ! -d "${ZUSERHOME}"/VBoxdisks/ ]; then
 		mkdir -p "${ZUSERHOME}"/VBoxdisks/

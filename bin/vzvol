@@ -11,6 +11,7 @@ VOLTYPE=NULL
 vzvol_libdir=/usr/local/lib/vzvol/lib
 vzvol_gitdir=$( find ./ -name "vzvol" | grep bin | sed 's/.\{10\}$//' )
 ZUSER="$(logname)"
+ZUSERHOME=$( awk -F ":" '/${ZUSER}/{print $6}' < /etc/passwd )
 
 
 if [ ! "$(whoami)" = 'root' ]; then
