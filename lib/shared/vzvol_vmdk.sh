@@ -10,6 +10,7 @@ vmdk_create() {
 		VBoxManage internalcommands createrawvmdk \
 		-filename "${ZUSERHOME}"/VBoxdisks/"${VOLNAME}".vmdk \
 		-rawdisk /dev/zvol/"${ZROOT}/${VOLNAME}"
+		chown "${ZUSER}:${ZUSER}" "${ZUSERHOME}"/VBoxdisks/"${VOLNAME}".vmdk
 	else
 		echo "${ZUSERHOME}/VBoxdisks/${VOLNAME}.vmdk" already exists.
 		return 1
