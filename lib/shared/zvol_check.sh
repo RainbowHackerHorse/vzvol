@@ -5,10 +5,6 @@ zvol_check() {
 		echo "Please provide a zvol name. See --help for more information."
 		return 1
 	fi
-	if [ "${ZUSER}" = 'NULL' ]; then
-		echo "Please provide a user for vzvol to set permissions on your zvol. See --help for more information. Use --user to set this."
-		return 1
-	fi
 	if [ "${VOLTYPE}" = 'NULL' ]; then
 		echo "Error. Type not selected. See --help for more information."
 		echo "You need to select your type with -t or --type."
