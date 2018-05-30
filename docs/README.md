@@ -24,7 +24,7 @@ However, to enable the use of certain functions, some additional packages are re
 - vzvol no longer requires sudo, however now, it must either be run as root, or with sudo.
 
 By default, on FreeBSD, these options are enabled. They can be disabled if installing
-fron ports (once it's accepted).
+fron ports.
 
 ### Linux
 - `dialog`
@@ -38,10 +38,11 @@ If you've contributed, please ensure you edit CONTRIBUTORS and add your GitHub u
 to the bottom if it isn't already listed!
 
 ## Package Status
-vzvol is currently supported in the following OS pkg systems:
+### vzvol is currently supported in the following OS pkg systems:
 - FreeBSD Ports - `cd /usr/ports/sysutils/vzvol && make install clean`
-We'd also like to get vzvol into Debian, if possible! If you know a Debian pkg maintainer
-who would like to sponser us getting a pkg made, get us in touch!
+
+### Unsupported but kept in mind during development
+- Debian Linux - If you know a Debian pkg maintainer who would like to sponser us getting a pkg made, get us in touch!
 
 
 ## Help
