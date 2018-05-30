@@ -32,11 +32,6 @@ fron ports (once it's accepted).
 - xfsprogs
 - pv
 
-## Will this ever be in the FreeBSD Ports Tree?
-WE'RE IN THE PORTS TREE!
-
-`cd /usr/ports/sysutils/vzvol && make install clean`
-
 ## Contributing
 Fork and open a PR with your changes.
 If you've contributed, please ensure you edit CONTRIBUTORS and add your GitHub username
@@ -45,6 +40,8 @@ to the bottom if it isn't already listed!
 ## Package Status
 vzvol is currently supported in the following OS pkg systems:
 - FreeBSD Ports - `cd /usr/ports/sysutils/vzvol && make install clean`
+We'd also like to get vzvol into Debian, if possible! If you know a Debian pkg maintainer
+who would like to sponser us getting a pkg made, get us in touch!
 
 
 ## Help
@@ -57,7 +54,7 @@ use with VirtualBox, however additional functionality has been added over time t
 make vzvol a general-use program. I hope you find it useful!
 
 This script is released under the 2-clause BSD license.
-(c) 2017 RainbowHackerHorse
+(c) 2017, 2018 RainbowHackerHorse
 
 https://github.com/RainbowHackerHorse/vzvol
 
