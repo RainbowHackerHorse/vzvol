@@ -10,9 +10,11 @@ jobs:
           name: BuildPkgDeb
           command: sh ~/vzvol_build/vzvol/build/vzvol_build.sh 0.6.4 deb ~/vzvol_build/vzvol rainbow@sanitylinux.org
       - run:
+          name: InstallDeps
+          command: apt-get update && apt-get -y install pv dialog xfsprogs dosfstools
+      - run:
           name: InstallPkg
           command: dpkg -i ~/vzvol_build/vzvol_0.6.4_all.deb
       - run:
           name: TestPkg
           command: sudo /usr/local/bin/vzvol --list
-           
