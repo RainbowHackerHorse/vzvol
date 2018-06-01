@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/vzvol_build
     docker:
-      - image: debian:stretch
+      - image: circleci/ubuntu-server:latest
     steps:
       - checkout
       - run:
