@@ -1,0 +1,18 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/vzvol_build
+    docker:
+      - image: debian:stretch
+    steps:
+      - checkout
+      - run:
+          name: BuildPkgDeb
+          command: sh ~/vzvol_build/vzvol/build/vzvol_build.sh 0.6.4 deb ~/vzvol_build/vzvol rainbow@sanitylinux.org
+      - run:
+          name: InstallPkg
+          command: dpkg -i ~/vzvol_build/vzvol_0.6.4_all.deb
+      - run:
+          name: TestPkg
+          command: sudo /usr/local/bin/vzvol --list
+           
