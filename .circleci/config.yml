@@ -7,14 +7,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: BuildPkgDeb
-          command: sh ~/vzvol_build/build/vzvol_build.sh 0.6.4 deb ~/vzvol_build rainbow@sanitylinux.org
-      - run:
           name: InstallDeps
           command: apt-get update && apt-get -y install pv dialog xfsprogs dosfstools ruby2.0
       - run:
           name: InstallGems
           command: gem2.0 install fpm
+      - run:
+          name: BuildPkgDeb
+          command: sh ~/vzvol_build/build/vzvol_build.sh 0.6.4 deb ~/vzvol_build rainbow@sanitylinux.org
       - run:
           name: InstallPkg
           command: dpkg -i ~/vzvol_build/vzvol_0.6.4_all.deb
