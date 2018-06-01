@@ -8,10 +8,10 @@ jobs:
       - checkout
       - run:
           name: InstallDeps
-          command: apt-get update && apt-get -y install pv dialog xfsprogs dosfstools ruby2.0 ruby2.0-dev
+          command: apt-get update && apt-get -y install pv dialog xfsprogs dosfstools ruby2.0 ruby2.0-dev gcc make
       - run:
           name: InstallGems
-          command: gem2.0 install fpm
+          command: gem2.0 install fpm --no-ri --no-doc
       - run:
           name: BuildPkgDeb
           command: sh ~/vzvol_build/build/vzvol_build.sh 0.6.4 deb ~/vzvol_build rainbow@sanitylinux.org
