@@ -3,8 +3,7 @@ jobs:
   build:
     working_directory: ~/vzvol_build
     machine:
-      - enabled: true
-      - image: circleci/classic:latest
+      enabled: true
     steps:
       - checkout
       - run:
