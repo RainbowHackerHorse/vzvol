@@ -32,13 +32,16 @@ jobs:
           command: sudo zpool create vzvoltestpool /root/vzvolpool.img
       - run:
           name: TestCreate
-          command: sudo /usr/local/bin/vzvol -t virtualbox -v HorseTest -s 1G --file-system ext4
+          command: sudo /usr/local/bin/vzvol -t virtualbox -v HorseTest -s 512M
       - run:
           name: TestCreateRaw
-          command: sudo /usr/local/bin/vzvol -t raw -v HorseTest2 -s 1G --file-system ext4
+          command: sudo /usr/local/bin/vzvol -t raw -v HorseTest2 -s 20M
       - run:
           name: TestList
           command: sudo /usr/local/bin/vzvol --list
       - run:
           name: TestDelete
           command: sudo /usr/local/bin/vzvol --delete vzvoltestpool/HorseTest
+      - run:
+          name: TestDeleteRaw
+          command: sudo /usr/local/bin/vzvol --delete vzvoltestpool/HorseTest2
