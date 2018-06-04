@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: InstallDeps
-          command: sudo add-apt-repository -y ppa:zfs-native/stable && sudo apt-get update && sudo apt-get -y install pv dialog xfsprogs dosfstools ruby2.0 ruby2.0-dev gcc make zfsutils
+          command: sudo add-apt-repository -y ppa:zfs-native/stable && sudo apt-get update && sudo apt-get -y install pv dialog xfsprogs dosfstools ruby2.0 ruby2.0-dev gcc make linux-headers-4.4.0-96-generic ubuntu-zfs zfs-dkms
       - run:
           name: kldload
           command: sudo modprobe zfs
@@ -23,10 +23,10 @@ jobs:
           command: sudo dpkg -i ~/vzvol_build/vzvol_0.6.4_all.deb
       - run:
           name: CreateDiskImage
-          command: sudo dd if=/dev/zero of=/root/zpool bs=10M count=1024
+          command: sudo dd if=/dev/zero of=/root/vzvolpool.img bs=1024M count=10
       - run:
           name: CreateZpool
-          command: sudo zpool create vzvoltestpool /root/zpool
+          command: sudo zpool create vzvoltestpool /root/vzvolpool.img
       - run:
           name: TestPkg
           command: sudo /usr/local/bin/vzvol --list
