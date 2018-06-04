@@ -20,7 +20,7 @@ jobs:
           command: sudo gem2.0 install fpm --no-ri --no-doc
       - run:
           name: BuildPkgDeb
-          command: sh ~/vzvol_build/build/vzvol_build.sh 0.6.4 deb ~/vzvol_build rainbow@sanitylinux.org
+          command: sudo sh ~/vzvol_build/build/vzvol_build.sh 0.6.4 deb ~/vzvol_build rainbow@sanitylinux.org
       - run:
           name: InstallPkg
           command: sudo dpkg -i ~/vzvol_build/vzvol_0.6.4_all.deb
@@ -31,5 +31,14 @@ jobs:
           name: CreateZpool
           command: sudo zpool create vzvoltestpool /root/vzvolpool.img
       - run:
-          name: TestPkg
+          name: TestList
           command: sudo /usr/local/bin/vzvol --list
+      - run:
+          name: TestCreate
+          command: sudo /usr/local/bin/vzvol -t virtualbox -v HorseTest -s 1G --file-system ext4
+      - run:
+          name: TestCreateRaw
+          command: sudo /usr/local/bin/vzvol -t raw -v HorseTest2 -s 1G --file-system ext4
+      - run:
+          name: TestDelete
+          command: sudo /usr/local/bin/vzvol --delete vzvoltestpool/HorseTest
