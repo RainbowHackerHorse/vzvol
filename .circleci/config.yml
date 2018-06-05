@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: InstallDeps
-          command: sudo add-apt-repository -y ppa:zfs-native/stable && ( echo "deb https://download.virtualbox.org/virtualbox/debian trusty contrib" | sudo tee -a /etc/apt/sources.d/virtualbox.list ) && ( wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add - ) && sudo apt-get update && sudo apt-get -y install pv dialog xfsprogs dosfstools ruby2.0 ruby2.0-dev gcc make linux-headers-4.4.0-96-generic 
+          command: sudo add-apt-repository -y ppa:zfs-native/stable && ( if [ ! -d /etc/apt/sources.d ]; then mkdir /etc/apt/sources.d; fi && touch /etc/apt/sources.d/virtualbox.list && echo "deb https://download.virtualbox.org/virtualbox/debian trusty contrib" | sudo tee -a /etc/apt/sources.d/virtualbox.list ) && ( wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | sudo apt-key add - ) && sudo apt-get update && sudo apt-get -y install pv dialog xfsprogs dosfstools ruby2.0 ruby2.0-dev gcc make linux-headers-4.4.0-96-generic 
       - run:
           name: InstallVBox
           command: sudo apt-get install -y VirtualBox-5.2
