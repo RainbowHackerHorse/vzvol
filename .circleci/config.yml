@@ -50,4 +50,4 @@ jobs:
           command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest2
       - run:
           name: MakeSureDeleteWorked
-          command: sudo /usr/local/bin/vzvol --list && ls -lah ~/Vboxdisks/
+          command: ( sudo /usr/local/bin/vzvol --list ); if [ $? = 1 ]; then return 0; fi && ls -lah ~/Vboxdisks/ 
