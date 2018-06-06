@@ -110,6 +110,9 @@ vzvol_getargz() {
 				vzvol_list
 				exit
 			;;
+			-f)
+				vzvol_force="YES"
+			;;
 			--format)
 				( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${3}" )
 				if [ $? = 1 ]; then
