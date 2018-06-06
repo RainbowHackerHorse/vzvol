@@ -94,7 +94,12 @@ vzvol_getargz() {
 				shift
 			;;
 			--delete)
-				( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${2}" )
+				if [ "${2}" = "-f" ]; then
+					vzvol_force="YES"
+					( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${3}" )
+				else 
+					( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${2}" )
+				fi
 				if [ $? = 1 ]; then
 					echo "Error, zvol ${2} does not exist."
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
