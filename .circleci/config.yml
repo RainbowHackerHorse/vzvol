@@ -48,3 +48,6 @@ jobs:
       - run:
           name: TestDeleteRaw
           command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest2
+      - run:
+          name: MakeSureDeleteWorked
+          command: sudo /usr/local/bin/vzvol --list && ls -lah ~/Vboxdisks/
