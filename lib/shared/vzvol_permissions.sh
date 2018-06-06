@@ -1,8 +1,7 @@
 #!/bin/sh
 vzvol_permissions() {
-	
-	chown "${ZUSER}" "${ZVOL_NAME}"
-	( echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | tee -a /etc/devfs.conf ) > /dev/null 2>&1
+	zfs set owner:user="${ZUSER}" "${ZROOT}/${VOLNAME}"
+	# ( echo "own	zvol/${ZROOT}/${VOLNAME}	${ZUSER}:operator" | tee -a /etc/devfs.conf ) > /dev/null 2>&1
 
 	zfs set custom:fs=none "${ZROOT}/${VOLNAME}"
 	if [ ! "${FSTYPE}" = DIE ]; then
