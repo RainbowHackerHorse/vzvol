@@ -96,17 +96,17 @@ vzvol_getargz() {
 			--delete)
 				if [ "${2}" = "-f" ]; then
 					vzvol_force="YES"
-					( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${3}" )
+					DELETE_ME="${3}"
 				else 
-					( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${2}" )
+					DELETE_ME="${2}"
 				fi
+				( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${DELETE_ME}" )
 				if [ $? = 1 ]; then
-					echo "Error, zvol ${2} does not exist."
+					echo "Error, zvol ${DELETE_ME} does not exist."
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
 					return 1
 				else
-					DELETE_ME="${2}"
-					DELETE_VMDK="${ZUSERHOME}/VBoxDisks/${2}.vmdk"
+					DELETE_VMDK="${ZUSERHOME}/VBoxDisks/${DELETE_ME}.vmdk"
 					vzvol_delete || exit 1
 					exit
 				fi
