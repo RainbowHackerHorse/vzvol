@@ -44,7 +44,7 @@ jobs:
           command: sudo /usr/local/bin/vzvol --list
       - run:
           name: TestDelete
-          command: sudo /usr/local/bin/vzvol --delete vzvoltestpool/HorseTest
+          command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest
       - run:
           name: TestDeleteRaw
-          command: sudo /usr/local/bin/vzvol --delete vzvoltestpool/HorseTest2
+          command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest2
