@@ -1,0 +1,179 @@
+.Dd $Mdocdate$
+.Dt VZVOL 1
+.Os
+.Sh NAME
+.Nm vzvol
+.Nd ZFS zvol management utility
+.
+.Sh SYNOPSIS
+.Nm vzvol
+.Op Fl h Ns | Ns Fl -help
+.Op Fl s Ns | Ns Fl -size Ar size
+.Op Fl u Ns | Ns Fl -user Ar name
+.Op Fl v Ns | Ns Fl -volume Ar name
+.Op Fl p Ns | Ns Fl -pool
+.Op Fl t Ns | Ns Fl -type Ar behaviour
+.Op Fl -file-system Ar name
+.Op Fl -import Ar source
+.Op Fl p
+.Op Fl -format Ar type Ar zvol
+.Op Fl -delete Ar zvol
+.Op Fl -list
+.
+.Sh DESCRIPTION
+.Nm
+is a shell\-script designated to help automate the process of creating a ZFS zvol for use as a storage unit for virtualisation or testing.
+.Pp
+.Nm
+was originally created to allow you to back a light
+.Li \.VMDK
+file with a zvol for use with VirtualBox.
+However, additional functionality has been added over time to make
+.Nm
+a general\-use program.
+.
+.Bl -tag -width 6n
+.It Fl h , Fl -help
+Shows this help
+.
+.It Fl s , Fl -size Ar value Ns No = Ns Ar 10G
+Set the size of the zvol.
+Values should include a unit suffix like
+.Sy M Pq Megabytes
+or
+.Sy G Pq Gigabytes .
+Defaults to
+.Ar 10G
+if unspecified.
+.
+.It Fl u , Fl -user Ar name
+Set the user under which we grant permissions for the zvol.
+.Em Important :
+No longer defaults to your username, and is a mandatory option.
+.
+.It Fl v , Fl -volume Ar name
+Name of zvol.
+.
+.It Fl p , Fl -pool
+Override the logic to choose the zpool you want your zvol on.
+By default, this script selects the first zpool available,
+unless your first pool is
+.Dq bootpool
+.Pq this script will default to the second listed pool, usually Do zroot Dc in a default install .
+.
+.It Fl t , Fl -type Ar behaviour
+Set the disk type behaviour.
+The following types are accepted:
+.Bl -tag -width 12n -offset 4n
+.It Sy virtualbox
+The default behaviour.
+.Nm
+will create a shim VMDK to point to the created zvol.
+.
+.It Sy raw
+Create a raw, normal zvol with no shim, in the default location of
+.Pa /dev/zvol/poolname/volumename .
+.El
+.
+.It Fl -file-system Ar type
+Setting this flag allows you to format the zvol with your choice of filesystem.
+The default for vzvol is to not create a filesystem on the new zvol.
+Acceptable
+.Ar type
+values are listed below:
+.
+.Pp
+Filesystems with support in
+.Fx :
+.Bl -tag -width 6n -offset 4n
+.It Sy zfs
+Creates a ZFS filesystem, using the name set in
+.Fl -volume
+as the pool name.
+.It Sy ufs
+Create a
+.Fx Ns -compatible UFS2 filesystem
+.It Sy fat32
+Create an MS-DOS compatible FAT32 filesystem
+.El
+.Pp
+Filesystems which require
+.Pa sysutils/e2fsprogs :
+.Bl -tag -width 6n -offset 4n
+.It Sy ext2
+Create a Linux-compatible ext2 filesystem.
+.It Sy ext2
+Create a Linux-compatible ext3 filesystem.
+.It Sy ext2
+Creates a Linux-compatible ext4 filesystem.
+.El
+.Pp
+Filesystems which require
+.Pa sysutils/xfsprogs :
+.Bl -tag -width 6n -offset 4n
+.It Sy xfs
+Create an XFS filesystem.
+.El
+.
+.It Fl -import Ar source
+Import the contents of a downloaded disk image to your newly-created zvol.
+This is useful when using a pre-installed VM image, such as
+.Pa https://github.com/UN/FreeBSD-On-Linode .
+.
+.It Fl p
+Used with
+.Fl -import
+to show a progress bar for image data importation to the vzol.
+Requires that
+.Pa sysutils/pv
+be installed.
+.
+.It Fl -format Ar type zvol
+Reformat a zvol created by
+.Nm vzvol ,
+using the same options and arguments as
+.Fl -file-system .
+For example:
+.Dq Li vzvol --format xfs zroot/smartos
+.
+.It Fl -delete Ar zvol
+Delete the
+.Ar zvol
+you specify.
+If a \.VMDK file is associated with the zvol, the \.VMDK will also be deleted.
+You MUST specify the zpool the zvol resides on.
+You can get this information from running
+.Dq vzvol --list
+or
+.Dq zfs list -t volume .
+.Pp
+Example:
+.Bd -literal -offset 4n
+vzvol --delete zroot/smartos11
+.Ed
+.It Fl -list
+List all zvols on your system, the type, any associated \.VMDK files,
+how much space on disk is used by the zvol, the maximum size of the zvol capacity,
+and the filesystem, if vzvol can determine it.
+Imported images will list FS as
+.Dq imported ,
+and any zvol that doesn't have
+.Dq custom:FS
+set will report
+.Dq unknown .
+.Pp
+Example output:
+.Bd -literal -offset 4n
+ZVOL                   TYPE         VMDK                                        USED    SIZE  FS
+zroot/smartos          RAW          none                                        20G     50G   zfs
+zroot/ubuntu1604       VirtualBox   /home/username/VBoxDisks/ubuntu1604.vmdk	1.51G   10G   ext4
+.Ed
+.El
+.
+.Sh SEE ALSO
+.Xr xfs 8 ,
+.Xr zpool 8
+.
+.Sh AUTHORS
+This script is released under the 2-clause BSD license. \(co 2017
+.An RainbowHackerHorse Aq https://github.com/RainbowHackerHorse/vzvol
