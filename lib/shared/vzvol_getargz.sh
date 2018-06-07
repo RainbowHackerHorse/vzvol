@@ -111,7 +111,7 @@ vzvol_getargz() {
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
 					return 1
 				else
-					DELETE_VMDK="${ZUSERHOME}/VBoxdisks/${DELETE_ME}.vmdk"
+					DELETE_VMDK="${ZUSERHOME}/VBoxdisks/$( echo ${DELETE_ME} | awk -F "/" '{print $2}' ).vmdk"
 					vzvol_delete || exit 1
 					exit
 				fi
