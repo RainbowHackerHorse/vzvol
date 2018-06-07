@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/RainbowHackerHorse/vzvol.svg?style=svg)](https://circleci.com/gh/RainbowHackerHorse/vzvol)
+Testing Status: [![CircleCI](https://circleci.com/gh/RainbowHackerHorse/vzvol.svg?style=svg)](https://circleci.com/gh/RainbowHackerHorse/vzvol)
 
 # vzvol
 vzvol is a tool to assist in the creation of ZFS zvols as storage for various virtualization providers.
