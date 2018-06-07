@@ -37,7 +37,7 @@ vzvol_getargz() {
 					return 1
 				fi
 			;;
-			-p|--pool)
+			--pool)
 				if [ "$2" ]; then
 					ZROOT="${2}"
 					shift
