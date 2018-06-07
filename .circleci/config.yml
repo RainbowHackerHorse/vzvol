@@ -62,4 +62,4 @@ jobs:
           command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest2
       - run :
           name: MakeSureVMDKDeleteWorked
-          command: [ ! -f ~/VBoxdisks/HorseTest.vmdk ] 
+          command: test ! -f ~/VBoxdisks/HorseTest.vmdk
