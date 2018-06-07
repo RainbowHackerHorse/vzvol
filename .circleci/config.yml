@@ -40,14 +40,20 @@ jobs:
           name: TestCreateRaw
           command: sudo /usr/local/bin/vzvol -t raw -v HorseTest2 -s 20M
       - run:
+          name: TestCreateEXT2
+          command: sudo /usr/local/bin/vzvol -t raw -v HorseTest2 -s 20M --file-system ext2
+      - run:
           name: TestList
           command: sudo /usr/local/bin/vzvol --list
       - run:
           name: TestDelete
           command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest
       - run:
+          name: MakeSureDeleteWorked
+          command: sudo /usr/local/bin/vzvol --list
+      - run:
           name: TestDeleteRaw
           command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest2
-      - run:
-          name: MakeSureDeleteWorked
-          command: ( sudo /usr/local/bin/vzvol --list ); if [ $? = 1 ]; then return 0; fi && ls -lah ~/Vboxdisks/ 
+      - run :
+          name: MakeSureRawDeleteWorked
+          command: ls -lah ~/Vboxdisks/
