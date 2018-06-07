@@ -41,7 +41,13 @@ jobs:
           command: sudo /usr/local/bin/vzvol -t raw -v HorseTest2 -s 20M
       - run:
           name: TestCreateEXT2
-          command: sudo /usr/local/bin/vzvol -t raw -v HorseTest2 -s 20M --file-system ext2
+          command: sudo /usr/local/bin/vzvol -t raw -v ext2test -s 20M --file-system ext2
+      - run:
+          name: TestCreateXFS
+          command: sudo /usr/local/bin/vzvol -t raw -v xfstest -s 20M --file-system xfs
+      - run:
+          name: TestCreateFAT32
+          command: sudo /usr/local/bin/vzvol -t raw -v xfstest -s 20M --file-system fat32
       - run:
           name: TestList
           command: sudo /usr/local/bin/vzvol --list
