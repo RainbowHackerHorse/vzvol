@@ -5,7 +5,7 @@ vzvol_list() {
 		echo "Error: no zvols configured"
 		echo "Why not try creating one?"
 		echo "It's as easy as: vzvol -t raw -v volumename"
-		exit 1
+		return 1
 	fi
 	vzvol_pre_list
 	if [ $? = 0 ]; then

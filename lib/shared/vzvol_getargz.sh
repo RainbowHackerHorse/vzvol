@@ -37,7 +37,7 @@ vzvol_getargz() {
 					return 1
 				fi
 			;;
-			-p|--pool)
+			--pool)
 				if [ "$2" ]; then
 					ZROOT="${2}"
 					shift
@@ -60,12 +60,17 @@ vzvol_getargz() {
 				fi
 			;;
 			--file-system)
-				if [ "$2" ]; then
+				if [ "${2}" = "-f" ]; then
+					vzvol_force="YES"
+					FSTYPE="${3}"
+				else 
+					FSTYPE="${2}"
+				fi
+				if [ "$FSTYPE" ]; then
 					if [ ! "${IMPORTIMG}" = "DIE" ]; then
 						echo "--file-system is incompatible with --import."
 						return 1
 					fi
-					FSTYPE="${2}"
 					vzvol_fscheck "${FSTYPE}"
 					FORMAT_ME="${ZROOT}/${VOLNAME}"
 				fi
@@ -94,14 +99,19 @@ vzvol_getargz() {
 				shift
 			;;
 			--delete)
-				( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${2}" )
+				if [ "${2}" = "-f" ]; then
+					vzvol_force="YES"
+					DELETE_ME="${3}"
+				else 
+					DELETE_ME="${2}"
+				fi
+				( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${DELETE_ME}" )
 				if [ $? = 1 ]; then
-					echo "Error, zvol ${2} does not exist."
+					echo "Error, zvol ${DELETE_ME} does not exist."
 					echo "Try running vzvol --list or zfs list -t volume to see the available zvols on the system."
 					return 1
 				else
-					DELETE_ME="${2}"
-					DELETE_VMDK="${ZUSERHOME}/VBoxDisks/${2}.vmdk"
+					DELETE_VMDK="${ZUSERHOME}/VBoxdisks/$( echo ${DELETE_ME} | awk -F "/" '{print $2}' ).vmdk"
 					vzvol_delete || exit 1
 					exit
 				fi
@@ -109,6 +119,9 @@ vzvol_getargz() {
 			--list)
 				vzvol_list
 				exit
+			;;
+			-f)
+				vzvol_force="YES"
 			;;
 			--format)
 				( zfs list -t volume | awk '{print $1}' | grep -v "NAME" | grep -q "${3}" )

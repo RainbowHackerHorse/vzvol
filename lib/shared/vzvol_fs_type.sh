@@ -1,18 +1,20 @@
 #!/bin/sh
 zvol_fs_type() {
-	errorfunc='zvol_fs_type'	
+	errorfunc='zvol_fs_type'
 	echo "Now formatting /dev/zvol/${FORMAT_ME} as ${FSTYPE}"
 	echo "This will DESTROY all data on /dev/zvol/${FORMAT_ME}"
-	read -r -p "Do you want to continue? [y/N]?" line </dev/tty
-	case "$line" in
-		y)
-			echo "Beginning format..."
-		;;
-		*)
-			echo "Format cancelled!"
-			return 1
-		;;
-	esac
+	if [ ! "$vzvol_force" = YES ]; then
+		read -r -p "Do you want to continue? [y/N]?" line </dev/tty
+		case "$line" in
+			y)
+				echo "Beginning format..."
+			;;
+			*)
+				echo "Format cancelled!"
+				return 1
+			;;
+		esac
+	fi
 	zfs set custom:fs="${FSTYPE}" "${FORMAT_ME}"
 	case "${FSTYPE}" in
 		zfs)
