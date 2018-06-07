@@ -60,12 +60,17 @@ vzvol_getargz() {
 				fi
 			;;
 			--file-system)
-				if [ "$2" ]; then
+				if [ "${2}" = "-f" ]; then
+					vzvol_force="YES"
+					FSTYPE="${3}"
+				else 
+					FSTYPE="${2}"
+				fi
+				if [ "$FSTYPE" ]; then
 					if [ ! "${IMPORTIMG}" = "DIE" ]; then
 						echo "--file-system is incompatible with --import."
 						return 1
 					fi
-					FSTYPE="${2}"
 					vzvol_fscheck "${FSTYPE}"
 					FORMAT_ME="${ZROOT}/${VOLNAME}"
 				fi
