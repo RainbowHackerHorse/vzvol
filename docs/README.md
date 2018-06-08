@@ -46,9 +46,11 @@ to the bottom if it isn't already listed!
 1. `cd /usr/ports/sysutils/vzvol && make install clean` or `pkg install vzvol`
 
 #### Debian (Using my repo)
-1. Add `deb https://repo.hackerhorse.io/deb/ debian main` to /etc/apt/sources.list.d/vzvol.list
-2. Run `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FF07F6AE`
-3. Run `apt-get update`
+1. Ensure `apt-transport-https` is installed.
+2. Add `deb https://repo-hackerhorse-io.nyc3.digitaloceanspaces.com/deb/ debian main` to /etc/apt/sources.list.d/vzvol.list (Once DO allows for CNAMEs on Spaces, this will change to https://repo.hackerhorse.io/deb)
+3. Run `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FF07F6AE`
+4. Run `apt-get update`
+5. Run `apt-get install vzvol`
 
 ### Unsupported
 - Debian Linux - If you know a Debian pkg maintainer who would like to sponser us getting a pkg made officially, get us in touch!
