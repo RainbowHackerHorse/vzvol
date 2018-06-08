@@ -23,7 +23,7 @@ jobs:
           command: sudo gem2.0 install fpm --no-ri --no-doc
       - run:
           name: BuildPkgDeb
-          command: sudo sh ~/vzvol_build/build/vzvol_build.sh 0.6.4 deb ~/vzvol_build rainbow@sanitylinux.org
+          command: sudo sh ~/vzvol_build/build/vzvol_build.sh 0.0.0 0 deb ~/vzvol_build rainbow@sanitylinux.org
       - run:
           name: InstallPkg
           command: sudo dpkg -i ~/vzvol_build/vzvol_0.6.4_all.deb
