@@ -35,31 +35,31 @@ jobs:
           command: sudo zpool create vzvoltestpool /root/vzvolpool.img
       - run:
           name: TestCreate
-          command: sudo /usr/local/bin/vzvol -t virtualbox -v HorseTest -s 512M
+          command: sudo /usr/local/sbin/vzvol -t virtualbox -v HorseTest -s 512M
       - run:
           name: TestCreateRaw
-          command: sudo /usr/local/bin/vzvol -t raw -v HorseTest2 -s 20M
+          command: sudo /usr/local/sbin/vzvol -t raw -v HorseTest2 -s 20M
       - run:
           name: TestCreateEXT2
-          command: sudo /usr/local/bin/vzvol -t raw -v ext2test -s 20M --file-system -f ext2
+          command: sudo /usr/local/sbin/vzvol -t raw -v ext2test -s 20M --file-system -f ext2
       - run:
           name: TestCreateXFS
-          command: sudo /usr/local/bin/vzvol -t raw -v xfstest -s 20M --file-system -f xfs
+          command: sudo /usr/local/sbin/vzvol -t raw -v xfstest -s 20M --file-system -f xfs
       - run:
           name: TestCreateFAT32
-          command: sudo /usr/local/bin/vzvol -t raw -v xfstest -s 20M --file-system -f fat32
+          command: sudo /usr/local/sbin/vzvol -t raw -v xfstest -s 20M --file-system -f fat32
       - run:
           name: TestList
-          command: sudo /usr/local/bin/vzvol --list
+          command: sudo /usr/local/sbin/vzvol --list
       - run:
           name: TestDelete
-          command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest
+          command: sudo /usr/local/sbin/vzvol --delete -f vzvoltestpool/HorseTest
       - run:
           name: MakeSureDeleteWorked
-          command: sudo /usr/local/bin/vzvol --list
+          command: sudo /usr/local/sbin/vzvol --list
       - run:
           name: TestDeleteRaw
-          command: sudo /usr/local/bin/vzvol --delete -f vzvoltestpool/HorseTest2
+          command: sudo /usr/local/sbin/vzvol --delete -f vzvoltestpool/HorseTest2
       - run :
           name: MakeSureVMDKDeleteWorked
           command: test ! -f ~/VBoxdisks/HorseTest.vmdk
