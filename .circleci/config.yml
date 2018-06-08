@@ -26,7 +26,7 @@ jobs:
           command: sudo sh ~/vzvol_build/build/vzvol_build.sh 0.0.0 0 deb ~/vzvol_build rainbow@sanitylinux.org
       - run:
           name: InstallPkg
-          command: sudo dpkg -i ~/vzvol_build/vzvol_0.6.4_all.deb
+          command: sudo dpkg -i ~/vzvol_build/vzvol_0.0.0-0_all.deb
       - run:
           name: CreateDiskImage
           command: sudo dd if=/dev/zero of=/root/vzvolpool.img bs=1024M count=10
