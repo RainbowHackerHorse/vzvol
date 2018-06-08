@@ -46,7 +46,7 @@ to the bottom if it isn't already listed!
 1. `cd /usr/ports/sysutils/vzvol && make install clean` or `pkg install vzvol`
 
 #### Debian (Using my repo)
-1. Add `deb https://repo.hackerhorse.io/debian ./` to /etc/apt/sources.list.d/vzvol.list
+1. Add `deb https://repo.hackerhorse.io/deb/ debian main` to /etc/apt/sources.list.d/vzvol.list
 2. Run `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FF07F6AE`
 3. Run `apt-get update`
 
@@ -70,8 +70,8 @@ I'm lazy and found a thing called aptly. This is how I created the Debian repo.
 1. `aptly repo create vzvol`
 2. `aptly repo add vzvol vzvol_VERSION_all.deb` 
 3. `aptly snapshot create vzvol from repo vzvol`
-4. `aptly publish -distribution=debian -architectures=all snapshot vzvol`
-5. `aptly publish -distribution=ubuntu -architectures=all snapshot vzvol`
+4. `aptly publish -distribution=debian -architectures=amd64 snapshot vzvol`
+5. `aptly publish -distribution=ubuntu -architectures=amd64 snapshot vzvol`
 
 Your repo will be in ~/.aptly/public
 Publish where you please, or just mirror mine!
