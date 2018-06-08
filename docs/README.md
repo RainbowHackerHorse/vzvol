@@ -42,8 +42,13 @@ to the bottom if it isn't already listed!
 
 ## Package Status
 ### vzvol is currently supported in the following OS pkg systems:
-- FreeBSD Ports - `cd /usr/ports/sysutils/vzvol && make install clean` or `pkg install vzvol`
-- Debian - Add `deb https://repo.hackerhorse.io/debian` to /etc/apt/sources.list.d/vzvol.list
+#### FreeBSD Ports
+1. `cd /usr/ports/sysutils/vzvol && make install clean` or `pkg install vzvol`
+
+#### Debian (Using my repo)
+1. Add `deb https://repo.hackerhorse.io/debian ./` to /etc/apt/sources.list.d/vzvol.list
+2. Run `sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys FF07F6AE`
+3. Run `apt-get update`
 
 ### Unsupported
 - Debian Linux - If you know a Debian pkg maintainer who would like to sponser us getting a pkg made officially, get us in touch!
@@ -58,3 +63,15 @@ Dependencies: FPM
 2. `cd` to where you cloned the repo to
 3. `cd build`
 4. ./vzvol_build.sh "version" "deb/rpm" "vzvol git directory" "maintainer email"
+
+### Creating a repo
+I'm lazy and found a thing called aptly. This is how I created the Debian repo.
+
+1. `aptly repo create vzvol`
+2. `aptly repo add vzvol vzvol_VERSION_all.deb` 
+3. `aptly snapshot create vzvol from repo vzvol`
+4. `aptly publish -distribution=debian -architectures=all snapshot vzvol`
+5. `aptly publish -distribution=ubuntu -architectures=all snapshot vzvol`
+
+Your repo will be in ~/.aptly/public
+Publish where you please, or just mirror mine!
