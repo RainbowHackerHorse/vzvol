@@ -2,7 +2,7 @@ Testing Status: [![CircleCI](https://circleci.com/gh/RainbowHackerHorse/vzvol.sv
 
 # vzvol
 
-(https://vzvol.nyc3.digitaloceanspaces.com/HorseDrive_vector_border.png)
+![Logo](https://vzvol.nyc3.digitaloceanspaces.com/HorseDrive_vector_border.png)
 
 vzvol is a tool to assist in the creation of ZFS zvols as storage for various virtualization providers.
 
