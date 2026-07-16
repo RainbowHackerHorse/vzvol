@@ -12,9 +12,9 @@ vzvol_import_img() {
 		fi
 	fi
 	if [ "${VZVOL_PROGRESS_FLAG}" = "YES" ]; then
-		VZVOL_IMPORT_CMD="( pv -n ${IMPORTIMG} | of=${ZVOL_IMPORT} )2>&1 | dialog --gauge 'Importing...' 10 70 0"
+		VZVOL_IMPORT_CMD="( pv -n \"${IMPORTIMG}\" | of=${ZVOL_IMPORT} )2>&1 | dialog --gauge 'Importing...' 10 70 0"
 	else
-		VZVOL_IMPORT_CMD="dd if=${IMPORTIMG} of=${ZVOL_IMPORT}"
+		VZVOL_IMPORT_CMD="dd if=\"${IMPORTIMG}\" of=${ZVOL_IMPORT} status=progress" 
 	fi
 	echo "Now importing ${IMPORTIMG} to ${ZVOL_IMPORT}"
 	echo "This will DESTROY all data on ${ZVOL_IMPORT}"
