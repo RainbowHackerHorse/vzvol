@@ -9,7 +9,6 @@ VZVOL_PROGRESS_FLAG=NO
 NO_CREATE=NO
 VOLTYPE=NULL
 vzvol_libdir=/usr/local/lib/vzvol/lib
-vzvol_gitdir=$( find ./ -name "vzvol" | grep bin | sed 's/.\{10\}$//' )
 ZUSER="$(logname)"
 ZUSERHOME=$( grep "${ZUSER}": /etc/passwd | awk -F ":" '{print $6}' )
 
@@ -21,8 +20,6 @@ fi
 
 if [ -f ./vzvol ]; then
 	vzvol_libdir=../lib
-elif [ -d "$vzvol_gitdir" ]; then
-	vzvol_libdir="$vzvol_gitdir/lib"
 fi
 
 for vzvol_functions_list_shared in "${vzvol_libdir}"/shared/*; do 
